@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
+# a simple test. should successfully build
+set -e
 
 test_num="01"
-repo="bkendall/flaming-octo-nemesis"
+full_repo="bkendall/flaming-octo-nemesis"
 
-mkdir -p ./test-"$test_num"/"$repo"
+mkdir -p ./test-"$test_num"/"$full_repo"
 
 docker run \
   -e RUNNABLE_AWS_ACCESS_KEY="$AWS_ACCESS_KEY" \
@@ -22,8 +24,8 @@ docker run \
   test-image-builder
 
 # it should not be locked
-test ! -d ./test-"$test_num"/"$repo".lock
+test ! -d ./test-"$test_num"/"$full_repo".lock
 # the repo should exist
-test -e ./test-"$test_num"/"$repo"
+test -e ./test-"$test_num"/"$full_repo"
 # and the repo should exist
-test -f ./test-"$test_num"/"$repo"/README.md
+test -f ./test-"$test_num"/"$full_repo"/README.md

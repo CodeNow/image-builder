@@ -1,10 +1,13 @@
 #!/usr/bin/env bash
+# a locked directory (some other thing may be using the cache)
+# should successfully finish, just cloning
+set -e
 
 test_num="02"
-repo="bkendall/flaming-octo-nemesis"
+full_repo="bkendall/flaming-octo-nemesis"
 
-mkdir -p ./test-"$test_num"/"$repo"
-mkdir -p ./test-"$test_num"/"$repo".lock
+mkdir -p ./test-"$test_num"/"$full_repo"
+mkdir -p ./test-"$test_num"/"$full_repo".lock
 
 docker run \
   -e RUNNABLE_AWS_ACCESS_KEY="$AWS_ACCESS_KEY" \
@@ -23,8 +26,8 @@ docker run \
   test-image-builder
 
 # it should still be locked
-test -d ./test-"$test_num"/"$repo".lock
+test -d ./test-"$test_num"/"$full_repo".lock
 # the directory should exist
-test -e ./test-"$test_num"/"$repo"
+test -e ./test-"$test_num"/"$full_repo"
 # and in this case, it should be empty
-test ! -f ./test-"$test_num"/"$repo"/README.md
+test ! -f ./test-"$test_num"/"$full_repo"/README.md
