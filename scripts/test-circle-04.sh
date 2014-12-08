@@ -8,18 +8,6 @@ full_repo="bkendall/flaming-octo-nemesis"
 
 git clone git@github.com:bkendall/flaming-octo-nemesis ./test-"$test_num"/"$full_repo"
 
-build &
-WAIT_ON_PID=build_pid
-wait_pid $build_pid
-build
-
-# it should not be locked
-test ! -d ./test-"$test_num"/"$full_repo".lock
-# the repo not exist
-test -e ./test-"$test_num"/"$full_repo"
-# and the repo should be populated
-test -f ./test-"$test_num"/"$full_repo"/README.md
-
 build () {
   docker run \
     -e RUNNABLE_AWS_ACCESS_KEY="$AWS_ACCESS_KEY" \
@@ -35,15 +23,28 @@ build () {
     -e RUNNABLE_DOCKERTAG='test-built-image' \
     -e RUNNABLE_DOCKER_BUILDOPTIONS='' \
     -v `pwd`/test-"$test_num":/cache:rw \
-    test-image-builder
+    test-image-builder &
   build_pid="$!"
 }
 
 wait_pid () {
   pid=$1
-  while kill -0 "$pid" 2> /dev/null
+  while test -d "/proc/$pid" 2> /dev/null
   do
     sleep 1
   done
   echo "$pid" has completed
 }
+
+build
+WAIT_ON_PID=$build_pid
+wait_pid $WAIT_ON_PID
+build
+wait_pid $build_pid
+
+# it should not be locked
+test ! -d ./test-"$test_num"/"$full_repo".lock
+# the repo not exist
+test -e ./test-"$test_num"/"$full_repo"
+# and the repo should be populated
+test -f ./test-"$test_num"/"$full_repo"/README.md
