@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 
-mkdir -p ./test-01/flaming-octo-nemesis
+test_num="01"
+repo="bkendall/flaming-octo-nemesis"
+
+mkdir -p ./test-"$test_num"/"$repo"
 
 docker run \
   -e RUNNABLE_AWS_ACCESS_KEY="$AWS_ACCESS_KEY" \
@@ -15,5 +18,12 @@ docker run \
   -e RUNNABLE_DOCKER="$(cat DOCKER_IP):5354" \
   -e RUNNABLE_DOCKERTAG='test-built-image' \
   -e RUNNABLE_DOCKER_BUILDOPTIONS='' \
-  -v `pwd`/test-01:/cache:rw  \
+  -v `pwd`/test-"$test_num":/cache:rw  \
   test-image-builder
+
+# it should not be locked
+test ! -d ./test-"$test_num"/"$repo".lock
+# the repo should exist
+test -e ./test-"$test_num"/"$repo"
+# and the repo should exist
+test -f ./test-"$test_num"/"$repo"/README.md
