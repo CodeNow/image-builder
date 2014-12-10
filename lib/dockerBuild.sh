@@ -60,24 +60,24 @@ do
     LOCKED='true'
     sleep $STEP
     echo -n "."
-    mkdir /cache/"$REPO_DIR".lock > /dev/null 2>&1 && break
+    mkdir /cache/"$REPO_FULL_NAME".lock > /dev/null 2>&1 && break
     unset LOCKED
   done
   echo ""
 
   # if locked use cache, else just clone
   if [[ $LOCKED ]]; then
-    if [[ "$(ls -A /cache/$REPO_DIR 2>/dev/null)" ]]; then
-      pushd "/cache/$REPO_DIR" > /dev/null
+    if [[ "$(ls -A /cache/$REPO_FULL_NAME 2>/dev/null)" ]]; then
+      pushd "/cache/$REPO_FULL_NAME" > /dev/null
       git fetch --all || CLONE="true"
       popd > /dev/null
     else
-      git clone -q "${REPO_ARRAY[index]}" "/cache/$REPO_DIR" || CLONE="true"
+      git clone -q "${REPO_ARRAY[index]}" "/cache/$REPO_FULL_NAME" || CLONE="true"
     fi
-    cp -r "/cache/$REPO_DIR" "$REPO_DIR" || CLONE="true"
+    cp -r "/cache/$REPO_FULL_NAME" "$REPO_DIR" || CLONE="true"
 
     # release copy lock, this will remove stale locks because we did a full git clone.
-    rm -rf /cache/"$REPO_DIR".lock > /dev/null 2>&1 || true
+    rm -rf /cache/"$REPO_FULL_NAME".lock > /dev/null 2>&1 || true
   fi
 
   # fallback to clone if anything failed above

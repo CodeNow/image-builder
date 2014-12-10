@@ -1,4 +1,11 @@
 #!/usr/bin/env bash
+# a test without the cache. should be successful
+set -e
+
+test_num="03"
+full_repo="bkendall/flaming-octo-nemesis"
+
+mkdir ./test-"$test_num"
 
 docker run \
   -e RUNNABLE_AWS_ACCESS_KEY="$AWS_ACCESS_KEY" \
@@ -14,3 +21,11 @@ docker run \
   -e RUNNABLE_DOCKERTAG='test-built-image' \
   -e RUNNABLE_DOCKER_BUILDOPTIONS='' \
   test-image-builder
+
+# since we used no cache, none of these should be true
+# it should not be locked
+test ! -d ./test-"$test_num"/"$full_repo".lock
+# the repo should not exist
+test ! -e ./test-"$test_num"/"$full_repo"
+# and the repo should not be cloned _in the cache_
+test ! -f ./test-"$test_num"/"$full_repo"/README.md
