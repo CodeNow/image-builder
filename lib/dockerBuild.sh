@@ -75,7 +75,27 @@ do
     else
       git clone -q "${REPO_ARRAY[index]}" "/cache/$REPO_FULL_NAME" || CLONE="true"
     fi
-    cp -r "/cache/$REPO_FULL_NAME" "$REPO_DIR" || CLONE="true"
+    # have to check it out
+    if [ "$RUNNABLE_COMMITISH" ]; then
+      pushd "/cache/$REPO_FULL_NAME" > /dev/null
+      git checkout -q "${COMMITISH_ARRAY[index]}" || CLONE="true"
+      popd > /dev/null
+    fi
+    if [[ ! "$CLONE" ]]; then
+      cp -r "/cache/$REPO_FULL_NAME" "$REPO_DIR" || CLONE="true"
+    fi
+
+    if [[ ! "$CLONE" ]]; then
+      # touch all the things
+      SAVE_IFS=$IFS
+      IFS="
+"
+      for file in $(cd "/cache/$REPO_FULL_NAME" && find .)
+      do
+        touch --no-dereference --reference="/cache/$REPO_FULL_NAME/$file" "$REPO_DIR"/"$file"
+      done
+      IFS=$SAVE_IFS
+    fi
 
     # release copy lock, this will remove stale locks because we did a full git clone.
     rm -rf /cache/"$REPO_FULL_NAME".lock > /dev/null 2>&1 || true
@@ -85,17 +105,16 @@ do
   if [[ "$CLONE" || ! -d "$REPO_DIR" ]]; then
     rm -rf "$REPO_DIR" || true
     git clone -q "${REPO_ARRAY[index]}" "$REPO_DIR"
+
+    # Enter the repository
+    pushd $REPO_DIR > /dev/null
+    if [ "$RUNNABLE_COMMITISH" ]; then
+      git checkout -q "${COMMITISH_ARRAY[index]}"
+    fi
+    # Leave repo folder
+    popd > /dev/null
   fi
 
-  # Enter the repository
-  pushd $REPO_DIR > /dev/null
-
-  if [ "$RUNNABLE_COMMITISH" ]; then
-    git checkout -q "${COMMITISH_ARRAY[index]}"
-  fi
-
-  # Leave repo folder
-  popd > /dev/null
   # Leave temp folder
   popd > /dev/null
   echo ""
