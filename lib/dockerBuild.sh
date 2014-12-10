@@ -92,7 +92,8 @@ do
 "
       for file in $(cd "/cache/$REPO_FULL_NAME" && find .)
       do
-        touch --no-dereference --reference="/cache/$REPO_FULL_NAME/$file" "$REPO_DIR"/"$file"
+        # if this fails, we don't need to worry - we have a full copy of it already, the docker cache just may miss
+        touch --no-dereference --reference="/cache/$REPO_FULL_NAME/$file" "$REPO_DIR"/"$file" || true
       done
       IFS=$SAVE_IFS
     fi
