@@ -44,7 +44,7 @@ wait_pid $build_pid
 
 # it should not be locked
 test ! -d ./test-"$test_num"/"$full_repo".lock
-# the repo not exist
+# the repo should exist
 test -e ./test-"$test_num"/"$full_repo"
 # and the repo should be populated (from the first build)
 test -f ./test-"$test_num"/"$full_repo"/README.md
