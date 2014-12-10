@@ -50,6 +50,7 @@ for index in "${!REPO_ARRAY[@]}"
 do
   REPO_DIR=$(echo "${REPO_ARRAY[index]}" | awk '{split($0,r,"/"); print r[2];}')
   REPO_FULL_NAME=$(echo "${REPO_ARRAY[index]}" | awk '{split($0,r,":"); print r[2];}')
+  mkdir -p "$(dirname /cache/$REPO_FULL_NAME)"
   echo -e "${STYLE_BOLD}${COLOR_STATUS}Cloning '$REPO_FULL_NAME' into './$REPO_DIR'...${STYLE_RESET}"
   pushd $TEMPDIR > /dev/null
   ssh-add -D > /dev/null 2>&1
