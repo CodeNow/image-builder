@@ -3,7 +3,7 @@
 # should both succeed
 set -e
 
-test_num="03"
+test_num="04"
 full_repo="bkendall/flaming-octo-nemesis"
 
 git clone git@github.com:bkendall/flaming-octo-nemesis ./test-"$test_num"/"$full_repo"
@@ -46,5 +46,5 @@ wait_pid $build_pid
 test ! -d ./test-"$test_num"/"$full_repo".lock
 # the repo not exist
 test -e ./test-"$test_num"/"$full_repo"
-# and the repo should be populated
+# and the repo should be populated (from the first build)
 test -f ./test-"$test_num"/"$full_repo"/README.md
