@@ -19,7 +19,7 @@ build () {
     -e RUNNABLE_KEYS_BUCKET='runnable.image-builder' \
     -e RUNNABLE_DEPLOYKEY='flaming-octo-nemesis.key' \
     -e RUNNABLE_REPO='git@github.com:bkendall/flaming-octo-nemesis' \
-    -e RUNNABLE_COMMITISH="$COMMIT" \
+    -e RUNNABLE_COMMITISH="$commit" \
     -e RUNNABLE_DOCKER="$(cat DOCKER_IP):5354" \
     -e RUNNABLE_DOCKERTAG='test-built-image' \
     -e RUNNABLE_DOCKER_BUILDOPTIONS='' \
