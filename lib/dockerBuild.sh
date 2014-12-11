@@ -3,7 +3,7 @@ set -e
 
 check_head () {
   repo_commit=$(git rev-parse HEAD)
-  if [[ "$repo_commit" -eq "$RUNNABLE_COMMITISH" ]]; then
+  if [[ "$repo_commit" = "$1" ]]; then
     echo "correct"
     return
   fi
@@ -82,13 +82,13 @@ do
     fi
     # have to check it out
     if [ "$RUNNABLE_COMMITISH" ]; then
-      check=$(check_head)
-      if [[ "$check" -eq "fetch" ]]; then
-        pushd "/cache/$REPO_FULL_NAME" > /dev/null
+      pushd "/cache/$REPO_FULL_NAME" > /dev/null
+      check=$(check_head $RUNNABLE_COMMITISH)
+      if [[ "$check" = "fetch" ]]; then
         git fetch --all || CLONE="true"
         git checkout -q "${COMMITISH_ARRAY[index]}" || CLONE="true"
-        popd > /dev/null
       fi
+      popd > /dev/null
     fi
     if [[ ! "$CLONE" ]]; then
       cp -r "/cache/$REPO_FULL_NAME" "$REPO_DIR" || CLONE="true"

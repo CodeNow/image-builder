@@ -17,3 +17,4 @@ test:
     - ./scripts/test-circle-03.sh
     - ./scripts/test-circle-04.sh
     - ./scripts/test-circle-05.sh
+    - ./scripts/test-circle-06.sh

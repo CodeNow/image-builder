@@ -26,10 +26,10 @@ build () {
     test-image-builder
 }
 
-before=$(stat ./test-"$test_num"/"$full_repo"/.git)
+before=$(stat -t ./test-"$test_num"/"$full_repo"/.git)
 build
 build
-after=$(stat ./test-"$test_num"/"$full_repo"/.git)
+after=$(stat -t ./test-"$test_num"/"$full_repo"/.git)
 
 # it should not be locked
 test ! -d ./test-"$test_num"/"$full_repo".lock
@@ -38,4 +38,4 @@ test -e ./test-"$test_num"/"$full_repo"
 # and the repo should be populated (from the first build)
 test -f ./test-"$test_num"/"$full_repo"/README.md
 # the .git folder should not have changed it's stat data (because we don't change the committish)
-test "$before" -eq "$after"
+test "$before" = "$after"
