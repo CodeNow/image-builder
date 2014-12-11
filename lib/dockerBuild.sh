@@ -1,6 +1,15 @@
 #!/usr/bin/env bash
 set -e
 
+check_head () {
+  repo_commit=$(git rev-parse HEAD)
+  if [[ "$repo_commit" = "$1" ]]; then
+    echo "correct"
+    return
+  fi
+  echo "fetch"
+}
+
 # Seperator for lists
 IFS_BAK=$IFS
 IFS=";"
@@ -68,17 +77,17 @@ do
 
   # if locked use cache, else just clone
   if [[ $LOCKED ]]; then
-    if [[ "$(ls -A /cache/$REPO_FULL_NAME 2>/dev/null)" ]]; then
-      pushd "/cache/$REPO_FULL_NAME" > /dev/null
-      git fetch --all || CLONE="true"
-      popd > /dev/null
-    else
+    if [[ ! "$(ls -A /cache/$REPO_FULL_NAME 2>/dev/null)" ]]; then
       git clone -q "${REPO_ARRAY[index]}" "/cache/$REPO_FULL_NAME" || CLONE="true"
     fi
     # have to check it out
     if [ "$RUNNABLE_COMMITISH" ]; then
       pushd "/cache/$REPO_FULL_NAME" > /dev/null
-      git checkout -q "${COMMITISH_ARRAY[index]}" || CLONE="true"
+      check=$(check_head $RUNNABLE_COMMITISH)
+      if [[ "$check" = "fetch" ]]; then
+        git fetch --all || CLONE="true"
+        git checkout -q "${COMMITISH_ARRAY[index]}" || CLONE="true"
+      fi
       popd > /dev/null
     fi
     if [[ ! "$CLONE" ]]; then
