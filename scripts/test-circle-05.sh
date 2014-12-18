@@ -5,7 +5,7 @@ set -e
 test_num="05"
 full_repo="bkendall/flaming-octo-nemesis"
 
-mkdir ./test-"$test_num"
+mkdir -p ./test-"$test_num"
 
 docker run \
   -e RUNNABLE_AWS_ACCESS_KEY="$AWS_ACCESS_KEY" \
