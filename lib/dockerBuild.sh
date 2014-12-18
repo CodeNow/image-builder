@@ -142,16 +142,41 @@ if [ "$RUNNABLE_FILES" ]; then
 fi
 
 # DOCKER BUILD
+build_log=
+using_cache=
 if [ "$RUNNABLE_DOCKER" ] && [ "$RUNNABLE_DOCKERTAG" ]; then
   echo -e  "${STYLE_BOLD}${COLOR_STATUS}Building box...${STYLE_RESET}"
-  docker -H\="$RUNNABLE_DOCKER" build \
+  build_log=$(mktemp /tmp/rnnbl.log.XXXXXXXXXXXXXXXXXXXX)
+  cache_layer_name=$(echo "$RUNNABLE_DOCKERTAG" | awk '{split($0,a,":"); print a[1];}')
+  if [[ -d /layer-cache/"$cache_layer_name" ]]; then
+    using_cache="true"
+    cp /layer-cache/"$cache_layer_name"/layer.tar "$TEMPDIR"/layer.tar
+    awk '/# runnable-cache/ && !x {print "ADD ./layer.tar /"; print "RUN tar xvf /layer.tar --exclude=\".wh..wh*\" -C / && rm -f /layer.tar"; x=1} 1' "$TEMPDIR"/Dockerfile > "$TEMPDIR"/Dockerfile.tmp
+    mv "$TEMPDIR"/Dockerfile.tmp "$TEMPDIR"/Dockerfile
+  fi
+  docker -H "$RUNNABLE_DOCKER" build \
     -t "$RUNNABLE_DOCKERTAG" \
     $RUNNABLE_DOCKER_BUILDOPTIONS \
-    "$TEMPDIR"
+    "$TEMPDIR" | tee "$build_log"
   echo ""
 fi
 
 echo -e  "${STYLE_BOLD}${COLOR_SUCCESS}Build completed successfully!${STYLE_RESET}"
+
+if [[ "$build_log" && "$using_cache" != "true" ]]; then
+  cache_annotation="# runnable-cache"
+  image_id=$(awk '/Successfully built [0-9a-f]+/{ print $3 }' "$build_log")
+  cached_layer=$(docker -H "$RUNNABLE_DOCKER" history --no-trunc "$image_id" | awk "/$cache_annotation/"' { print $1 }')
+  if [[ "$cached_layer" != "" ]]; then
+    tar_dir=$(mktemp -d /tmp/rnnbl.images.XXXXXXXXXXXXXXXXXXXX)
+    tar_name="$tar_dir"/"$image_id".tar
+    docker -H "$RUNNABLE_DOCKER" save -o "$tar_name" "$image_id"
+    cache_layer_name=$(echo "$RUNNABLE_DOCKERTAG" | awk '{split($0,a,":"); print a[1];}')
+    tar --extract --file "$tar_name" --directory="$tar_dir" "$cached_layer"/layer.tar
+    mkdir -p /layer-cache/"$cache_layer_name"
+    mv "$tar_dir"/"$cached_layer"/layer.tar /layer-cache/"$cache_layer_name"/layer.tar
+  fi
+fi
 
 IFS=$IFS_BAK
 IFS_BAK=
