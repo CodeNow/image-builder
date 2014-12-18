@@ -151,7 +151,7 @@ if [ "$RUNNABLE_DOCKER" ] && [ "$RUNNABLE_DOCKERTAG" ]; then
   if [[ -d /layer-cache/"$cache_layer_name" ]]; then
     using_cache="true"
     cp /layer-cache/"$cache_layer_name"/layer.tar "$TEMPDIR"/layer.tar
-    awk '/# runnable-cache/ && !x {print "ADD ./layer.tar /"; print "RUN tar xvf /layer.tar --exclude=\".wh..wh*\" -C / && rm -f /layer.tar"; x=1} 1' "$TEMPDIR"/Dockerfile > "$TEMPDIR"/Dockerfile.tmp
+    awk '/# runnable-cache/ && !x { print "ADD layer.tar /"; x=1} 1' "$TEMPDIR"/Dockerfile > "$TEMPDIR"/Dockerfile.tmp
     mv "$TEMPDIR"/Dockerfile.tmp "$TEMPDIR"/Dockerfile
   fi
   docker -H "$RUNNABLE_DOCKER" build \
