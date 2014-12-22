@@ -44,7 +44,6 @@ test -f ./test-"$test_num"/"$full_repo"/README.md || (echo "repo should be clone
 echo "looking for archiver and waiting"
 # the archiver should be running
 running_containers=$(docker ps --no-trunc | grep "dockerLayerArchive" | wc -l)
-echo "runngin $running_containers"
 test $running_containers = "1" || (echo "container should be running dockerLayerArchive" && false)
 # wait for the container, and it should be successfull
 docker wait $(docker ps  --no-trunc | grep "dockerLayerArchive" | awk '{print $1}')
