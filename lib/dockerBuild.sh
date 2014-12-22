@@ -159,25 +159,31 @@ if [ "$RUNNABLE_DOCKER" ] && [ "$RUNNABLE_DOCKERTAG" ]; then
     $RUNNABLE_DOCKER_BUILDOPTIONS \
     "$TEMPDIR" | tee "$build_log"
   echo ""
+
+  # save archive of cached layer
+  if [[ "$build_log" && "$using_cache" != "true" && -d /layer-cache ]]; then
+    cache_annotation="# runnable-cache"
+    image_id=$(awk '/Successfully built [0-9a-f]+/{ print $3 }' "$build_log")
+    cached_layer=$(docker -H "$RUNNABLE_DOCKER" history --no-trunc "$image_id" | awk "/$cache_annotation/"' { print $1 }')
+
+    if [[ "$cached_layer" != "" ]]; then
+      docker -H "$RUNNABLE_DOCKER" run \
+        -d \
+        -e "IMAGE_ID=$image_id" \
+        -e "CACHED_LAYER=$cached_layer" \
+        -e "RUNNABLE_DOCKER=$RUNNABLE_DOCKER" \
+        -e "RUNNABLE_DOCKERTAG=$RUNNABLE_DOCKERTAG" \
+        -v "$RUNNABLE_DOCKER_LAYER_CACHE:/layer-cache" \
+        "$RUNNABLE_IMAGE_BUILDER_NAME":"$RUNNABLE_IMAGE_BUILDER_TAG" \
+        ./dockerLayerArchive.sh
+    else
+      echo "Could not find the cached layer in image ($image_id)"
+    fi
+
+  fi
 fi
 
 echo -e  "${STYLE_BOLD}${COLOR_SUCCESS}Build completed successfully!${STYLE_RESET}"
-
-# save archive of cached layer
-if [[ "$build_log" && "$using_cache" != "true" && -d /layer-cache ]]; then
-  cache_annotation="# runnable-cache"
-  image_id=$(awk '/Successfully built [0-9a-f]+/{ print $3 }' "$build_log")
-  cached_layer=$(docker -H "$RUNNABLE_DOCKER" history --no-trunc "$image_id" | awk "/$cache_annotation/"' { print $1 }')
-  if [[ "$cached_layer" != "" ]]; then
-    tar_dir=$(mktemp -d /tmp/rnnbl.images.XXXXXXXXXXXXXXXXXXXX)
-    tar_name="$tar_dir"/"$image_id".tar
-    docker -H "$RUNNABLE_DOCKER" save -o "$tar_name" "$image_id"
-    cache_layer_name=$(echo "$RUNNABLE_DOCKERTAG" | awk '{split($0,a,":"); print a[1];}')
-    tar --extract --file "$tar_name" --directory="$tar_dir" "$cached_layer"/layer.tar
-    mkdir -p /layer-cache/"$cache_layer_name"
-    mv "$tar_dir"/"$cached_layer"/layer.tar /layer-cache/"$cache_layer_name"/layer.tar
-  fi
-fi
 
 IFS=$IFS_BAK
 IFS_BAK=
