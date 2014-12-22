@@ -5,8 +5,8 @@ machine:
     - docker
 test:
   pre:
-    - npm install docker-mock@^0.3.0
-    - node -e "require('docker-mock').listen(5354)":
+    - npm install http-proxy
+    - node scripts/start-proxy.js:
         background: true
     - ps ax | grep docker-mock
     - ./scripts/getIpAddress.sh > DOCKER_IP
@@ -19,3 +19,4 @@ test:
     - ./scripts/test-circle-05.sh
     - ./scripts/test-circle-06.sh
     - ./scripts/test-circle-07.sh
+    - ./scripts/test-circle-08.sh

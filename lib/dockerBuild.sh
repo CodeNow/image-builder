@@ -163,6 +163,7 @@ fi
 
 echo -e  "${STYLE_BOLD}${COLOR_SUCCESS}Build completed successfully!${STYLE_RESET}"
 
+# save archive of cached layer
 if [[ "$build_log" && "$using_cache" != "true" && -d /layer-cache ]]; then
   cache_annotation="# runnable-cache"
   image_id=$(awk '/Successfully built [0-9a-f]+/{ print $3 }' "$build_log")
