@@ -26,7 +26,7 @@ BUILDER_LIB_DIR=$(pwd)
 TEMPDIR=$(mktemp -d /tmp/rnnbl.XXXXXXXXXXXXXXXXXXXX)
 
 if [ ! "$RUNNABLE_AWS_ACCESS_KEY" ] || [ ! "$RUNNABLE_AWS_SECRET_KEY" ]; then
-  echo -e "${STYLE_BOLD}${COLOR_ERROR}Missing credentials.${STYLE_RESET}"
+  >&2 echo -e "${STYLE_BOLD}${COLOR_ERROR}Missing credentials.${STYLE_RESET}"
   exit 1
 fi
 
@@ -151,7 +151,33 @@ if [ "$RUNNABLE_DOCKER" ] && [ "$RUNNABLE_DOCKERTAG" ]; then
   if [[ -d /layer-cache/"$cache_layer_name" ]]; then
     using_cache="true"
     cp /layer-cache/"$cache_layer_name"/layer.tar "$TEMPDIR"/layer.tar
-    awk '/# runnable-cache/ && !x { print "ADD layer.tar /"; x=1} 1' "$TEMPDIR"/Dockerfile > "$TEMPDIR"/Dockerfile.tmp
+    awk \
+      -v c=0 \
+      -v s='' \
+      -v p="# runnable-cache" \
+      '
+      {
+        if ( $0 ~ /.+\\/ ) {
+          c=NR;
+          if (s=="") {
+            s=$0;
+          } else {
+            s=s "\n" $0;
+          }
+        } else if ( c != 0 ) {
+          s=s "\n" $0;
+          if ( s ~ p ) {
+            s="ADD layer.tar /" "\n" s
+          }
+          print s;
+          c=0;
+          s="";
+        } else if ( $0 ~ p ) {
+          print "ADD layer.tar /" "\n" $0;
+        } else {
+          print $0;
+        }
+      }' "$TEMPDIR"/Dockerfile > "$TEMPDIR"/Dockerfile.tmp
     mv "$TEMPDIR"/Dockerfile.tmp "$TEMPDIR"/Dockerfile
   fi
   docker -H "$RUNNABLE_DOCKER" build \
