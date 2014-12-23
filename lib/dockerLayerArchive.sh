@@ -2,19 +2,19 @@
 set -e
 
 if [ ! "$RUNNABLE_DOCKER" ]; then
-  echo "Need RUNNABLE_DOCKER"
+  >&2 echo "Need RUNNABLE_DOCKER"
   exit 1
 fi
 if [ ! "$RUNNABLE_DOCKERTAG" ]; then
-  echo "Need RUNNABLE_DOCKERTAG"
+  >&2 echo "Need RUNNABLE_DOCKERTAG"
   exit 1
 fi
 if [ ! "$CACHED_LAYER" ]; then
-  echo "Need CACHED_LAYER"
+  >&2 echo "Need CACHED_LAYER"
   exit 1
 fi
 if [ ! "$IMAGE_ID" ]; then
-  echo "Need IMAGE_ID"
+  >&2 echo "Need IMAGE_ID"
   exit 1
 fi
 
