@@ -199,7 +199,8 @@ if [ "$RUNNABLE_DOCKER" ] && [ "$RUNNABLE_DOCKERTAG" ]; then
         -e "CACHED_LAYER=$cached_layer" \
         -e "RUNNABLE_DOCKER=$RUNNABLE_DOCKER" \
         -e "RUNNABLE_DOCKERTAG=$RUNNABLE_DOCKERTAG" \
-        -v "$RUNNABLE_DOCKER_LAYER_CACHE:/layer-cache" \
+        -v "$DOCKER_IMAGE_BUILDER_LAYER_CACHE:/layer-cache" \
+        -v "/var/run/docker.sock:/var/run/docker.sock" \
         "$RUNNABLE_IMAGE_BUILDER_NAME":"$RUNNABLE_IMAGE_BUILDER_TAG" \
         ./dockerLayerArchive.sh
     else
