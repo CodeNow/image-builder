@@ -1,3 +1,5 @@
+[![Circle CI](https://circleci.com/gh/CodeNow/image-builder.svg?style=svg&circle-token=88ba2c8c095692ffd21461040e1ee822e7ee30ee)](https://circleci.com/gh/CodeNow/image-builder)
+
 # Docker Image Builder
 
 A Docker image that is used to build other Docker images using other resources.

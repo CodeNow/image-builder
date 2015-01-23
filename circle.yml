@@ -5,17 +5,11 @@ machine:
     - docker
 test:
   pre:
-    - npm install docker-mock@^0.3.0
-    - node -e "require('docker-mock').listen(5354)":
+    - npm install http-proxy
+    - node scripts/start-proxy.js:
         background: true
     - ps ax | grep docker-mock
     - ./scripts/getIpAddress.sh > DOCKER_IP
     - docker build -t test-image-builder .
   override:
-    - ./scripts/test-circle-01.sh
-    - ./scripts/test-circle-02.sh
-    - ./scripts/test-circle-03.sh
-    - ./scripts/test-circle-04.sh
-    - ./scripts/test-circle-05.sh
-    - ./scripts/test-circle-06.sh
-    - ./scripts/test-circle-07.sh
+    - ./scripts/run-tests.sh

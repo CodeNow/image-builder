@@ -26,7 +26,7 @@ BUILDER_LIB_DIR=$(pwd)
 TEMPDIR=$(mktemp -d /tmp/rnnbl.XXXXXXXXXXXXXXXXXXXX)
 
 if [ ! "$RUNNABLE_AWS_ACCESS_KEY" ] || [ ! "$RUNNABLE_AWS_SECRET_KEY" ]; then
-  echo -e "${STYLE_BOLD}${COLOR_ERROR}Missing credentials.${STYLE_RESET}"
+  >&2 echo -e "${STYLE_BOLD}${COLOR_ERROR}Missing credentials.${STYLE_RESET}"
   exit 1
 fi
 
@@ -142,13 +142,72 @@ if [ "$RUNNABLE_FILES" ]; then
 fi
 
 # DOCKER BUILD
+build_log=
+using_cache=
 if [ "$RUNNABLE_DOCKER" ] && [ "$RUNNABLE_DOCKERTAG" ]; then
   echo -e  "${STYLE_BOLD}${COLOR_STATUS}Building box...${STYLE_RESET}"
-  docker -H\="$RUNNABLE_DOCKER" build \
+  build_log=$(mktemp /tmp/rnnbl.log.XXXXXXXXXXXXXXXXXXXX)
+  cache_layer_name=$(echo "$RUNNABLE_DOCKERTAG" | awk '{split($0,a,":"); print a[1];}')
+  if [[ -d /layer-cache/"$cache_layer_name" ]]; then
+    using_cache="true"
+    cp /layer-cache/"$cache_layer_name"/layer.tar "$TEMPDIR"/layer.tar
+    awk \
+      -v c=0 \
+      -v s='' \
+      -v p="# runnable-cache" \
+      '
+      {
+        if ( $0 ~ /.+\\/ ) {
+          c=NR;
+          if (s=="") {
+            s=$0;
+          } else {
+            s=s "\n" $0;
+          }
+        } else if ( c != 0 ) {
+          s=s "\n" $0;
+          if ( s ~ p ) {
+            s="ADD layer.tar /" "\n" s
+          }
+          print s;
+          c=0;
+          s="";
+        } else if ( $0 ~ p ) {
+          print "ADD layer.tar /" "\n" $0;
+        } else {
+          print $0;
+        }
+      }' "$TEMPDIR"/Dockerfile > "$TEMPDIR"/Dockerfile.tmp
+    mv "$TEMPDIR"/Dockerfile.tmp "$TEMPDIR"/Dockerfile
+  fi
+  docker -H "$RUNNABLE_DOCKER" build \
     -t "$RUNNABLE_DOCKERTAG" \
     $RUNNABLE_DOCKER_BUILDOPTIONS \
-    "$TEMPDIR"
+    "$TEMPDIR" | tee "$build_log"
   echo ""
+
+  # save archive of cached layer
+  if [[ "$build_log" && "$using_cache" != "true" && -d /layer-cache ]]; then
+    cache_annotation="# runnable-cache"
+    image_id=$(awk '/Successfully built [0-9a-f]+/{ print $3 }' "$build_log")
+    cached_layer=$(docker -H "$RUNNABLE_DOCKER" history --no-trunc "$image_id" | awk "/$cache_annotation/"' { print $1 }')
+
+    if [[ "$cached_layer" != "" ]]; then
+      docker -H "$RUNNABLE_DOCKER" run \
+        -d \
+        -e "IMAGE_ID=$image_id" \
+        -e "CACHED_LAYER=$cached_layer" \
+        -e "RUNNABLE_DOCKER=$RUNNABLE_DOCKER" \
+        -e "RUNNABLE_DOCKERTAG=$RUNNABLE_DOCKERTAG" \
+        -v "$DOCKER_IMAGE_BUILDER_LAYER_CACHE:/layer-cache" \
+        -v "/var/run/docker.sock:/var/run/docker.sock" \
+        "$RUNNABLE_IMAGE_BUILDER_NAME":"$RUNNABLE_IMAGE_BUILDER_TAG" \
+        ./dockerLayerArchive.sh
+    else
+      echo "Could not find the cached layer in image ($image_id)"
+    fi
+
+  fi
 fi
 
 echo -e  "${STYLE_BOLD}${COLOR_SUCCESS}Build completed successfully!${STYLE_RESET}"
