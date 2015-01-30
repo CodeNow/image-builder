@@ -38,5 +38,5 @@ test ! -d ./test-"$test_num"/"$full_repo".lock
 test -e ./test-"$test_num"/"$full_repo"
 # and the repo should be populated (from the first build)
 test -f ./test-"$test_num"/"$full_repo"/README.md
-# the .git folder should have changed it's stat data
+# the .git folder should have changed it's git commit
 test ! "$before" = "$after"

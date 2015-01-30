@@ -24,8 +24,8 @@ docker run \
   test-image-builder
 
 # it should not be locked
-test ! -d ./test-"$test_num"/"$full_repo".lock
+test ! -d ./test-"$test_num"/"$full_repo".lock || (echo "repo should not be locked" && false)
 # the repo should exist
-test -e ./test-"$test_num"/"$full_repo"
+test -e ./test-"$test_num"/"$full_repo" || (echo "repo should exist" && false)
 # and the repo should exist
-test -f ./test-"$test_num"/"$full_repo"/README.md
+test -f ./test-"$test_num"/"$full_repo"/README.md || (echo "repo should be populated" && false)

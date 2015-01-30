@@ -1,3 +1,5 @@
+[![Circle CI](https://circleci.com/gh/CodeNow/image-builder.svg?style=svg&circle-token=88ba2c8c095692ffd21461040e1ee822e7ee30ee)](https://circleci.com/gh/CodeNow/image-builder)
+
 # Docker Image Builder
 
 A Docker image that is used to build other Docker images using other resources.
@@ -74,3 +76,10 @@ This repo does not have enough tests to be reliably pull requested without manua
 
 If you need to debug the builder, you can set the environment variables, then additionally set `--rm -ti` as `run` options, and put `bash` on the end of the command after `runnable/image-builder`. This will dump you into a shell where you can run `./dockerBuild.sh` to manually run the build!
 
+## Testing
+
+A few tests are now available to run:
+
+- `npm run lint`: runs the javascript linter against the code
+- `npm run test`: runs some unit tests against the various steps. **NOTE:** these tests should _not_ be run on your local, main, dev machine (yet). It tends to do destructive things to your ssh-agent (and some file system stuff), so don't quite trust it locally yet
+- `./scripts/run-tests.sh`: runs some integration tests against a built docker image to make sure all the things run through correctly

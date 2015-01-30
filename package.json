@@ -1,0 +1,39 @@
+{
+  "name": "image-builder",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "dependencies": {
+    "async": "0.9.0",
+    "aws-sdk": "2.0.17",
+    "callback-count": "^0.1.0",
+    "colors": "^1.0.3",
+    "concat-stream": "^1.4.7",
+    "lockfile": "^1.0.0",
+    "minimist": "1.1.0",
+    "mkdirp": "0.5.0"
+  },
+  "devDependencies": {
+    "code": "^1.3.0",
+    "docker-mock": "^0.6.0",
+    "jshint": "^2.6.0",
+    "lab": "^5.2.1"
+  },
+  "scripts": {
+    "test": "./node_modules/.bin/lab --verbose",
+    "lint": "./node_modules/.bin/jshint --verbose ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/CodeNow/image-builder.git"
+  },
+  "author": "Bryan Kendall <bryan@runnable.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/CodeNow/image-builder/issues"
+  },
+  "homepage": "https://github.com/CodeNow/image-builder"
+}
