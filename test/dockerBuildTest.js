@@ -134,7 +134,7 @@ lab.experiment('downloadDeployKeys', function () {
       });
     });
     lab.experiment('with keys to download', function () {
-      lab.test('to download the keys', function (done) {
+      lab.test('to download the keys', { timeout: 5000 }, function (done) {
         steps.downloadDeployKeys(function (err) {
           if (err) { return done(err); }
           var keyPath = path.join(
@@ -162,7 +162,8 @@ lab.experiment('chmodAllKeys', function () {
 
   lab.experiment('succeeds', function () {
     lab.experiment('when there are keys', function () {
-      lab.beforeEach(steps.downloadDeployKeys.bind(steps));
+      lab.beforeEach({ timeout: 5000 }, steps.downloadDeployKeys.bind(steps));
+
       lab.test('to set the permissions on the keys', function (done) {
         steps.chmodAllKeys(function (err) {
           if (err) { return done(err); }
@@ -255,8 +256,9 @@ lab.experiment('getRepositories', function () {
   });
   lab.experiment('succeeds', function () {
     lab.beforeEach(steps.makeWorkingFolders.bind(steps));
-    lab.beforeEach(steps.downloadDeployKeys.bind(steps));
+    lab.beforeEach({ timeout: 5000 }, steps.downloadDeployKeys.bind(steps));
     lab.beforeEach(steps.chmodAllKeys.bind(steps));
+
     lab.experiment('when there is a repo', function () {
       /* github can be slow to respond. long timeout */
       lab.test('to download the repo', { timeout: 10000 }, function (done) {
