@@ -24,7 +24,7 @@
     "sinon": "^1.12.2"
   },
   "scripts": {
-    "test": "./node_modules/.bin/lab --verbose",
+    "test": "./node_modules/.bin/lab --verbose --coverage --threshold 95",
     "lint": "./node_modules/.bin/jshint --verbose ."
   },
   "repository": {
