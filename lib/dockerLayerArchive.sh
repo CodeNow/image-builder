@@ -28,8 +28,6 @@ docker -H "$RUNNABLE_DOCKER" save -o "$tar_name" "$IMAGE_ID"
 cache_layer_name=$(echo "$RUNNABLE_DOCKERTAG" | awk '{split($0,a,":"); print a[1];}')
 tar --extract --file "$tar_name" --directory="$tar_dir" "$CACHED_LAYER"/layer.tar
 mkdir -p /layer-cache/"$cache_layer_name"
-rm -rf /layer-cache/"$cache_layer_name"/hash.*
-mv "$tar_dir"/"$CACHED_LAYER"/layer.tar /layer-cache/"$cache_layer_name"/layer.tar
-touch /layer-cache/"$cache_layer_name"/hash."$CACHED_LAYER_HASH"
+mv "$tar_dir"/"$CACHED_LAYER"/layer.tar /layer-cache/"$cache_layer_name"/"$CACHED_LAYER_HASH".tar
 
-echo "Saved $cache_layer_name/layer.tar"
+echo "Saved $cache_layer_name/$CACHED_LAYER_HASH.tar"

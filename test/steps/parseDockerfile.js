@@ -80,7 +80,11 @@ lab.experiment('parseDockerfile', function () {
       });
       lab.beforeEach({ timeout: 5000 }, steps.downloadBuildFiles.bind(steps));
       lab.beforeEach(function (done) {
-        sinon.spy(childProcess, 'exec');
+        sinon.stub(childProcess, 'exec')
+          .yields(
+            new Error('Command failed: cp: /tmp/empty/file:' +
+              'No such file or directory'),
+            '', '');
         done();
       });
       lab.afterEach(function (done) {
@@ -92,7 +96,7 @@ lab.experiment('parseDockerfile', function () {
         steps.parseDockerfile(function (err) {
           if (err) { return done(err); }
           // not copying a cache
-          expect(childProcess.exec.callCount).to.equal(0);
+          expect(childProcess.exec.callCount).to.equal(1);
           expect(!!steps.data.usingCache).to.be.false();
           expect(steps.data.cachedLine).to.not.be.undefined();
           expect(steps.data.createdByHash).to.not.be.undefined();
@@ -141,8 +145,7 @@ lab.experiment('parseDockerfile', function () {
         var cmds = [
           'mkdir -p /tmp/layer-cache/test-docker-tag',
           'touch /tmp/layer-cache/test-docker-tag/' +
-            'hash.93f7657e7c42734aac70d134cecf53d3',
-          'touch /tmp/layer-cache/test-docker-tag/layer.tar'
+            '93f7657e7c42734aac70d134cecf53d3.tar'
         ].join(' && ');
         childProcess.exec(cmds, done);
       });
