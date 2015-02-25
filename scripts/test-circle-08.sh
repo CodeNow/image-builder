@@ -52,4 +52,4 @@ echo "checking layer cache status"
 # layer-cache tests
 # directory and layer should exist
 test -d ./test-"$test_num"/layer-cache/test/test-built-image || (echo "directory for layer should exist" && false)
-test -f ./test-"$test_num"/layer-cache/test/test-built-image/layer.tar || (echo "layer.tar should exist" && false)
+ls ./test-"$test_num"/layer-cache/test/test-built-image/*.tar 1> /dev/null 2>&1 || (echo "layer.tar should exist" && false)
