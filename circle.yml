@@ -12,9 +12,11 @@ test:
     - docker build -t test-image-builder .
     - npm install
     - mkdir -p /tmp/cache
+    - mkdir -p /tmp/layer-cache
   override:
     - npm run lint
     - npm test:
         environment:
           CACHE_DIR: /tmp/cache
+          LAYER_CACHE_DIR: /tmp/layer-cache
     - ./scripts/run-tests.sh
