@@ -71,8 +71,8 @@ second_log=$(mktemp /tmp/log.XXXX)
 echo "FIRST BUILD"
 build $first_log
 checks 1
-grep -vq "ADD layer.tar /" "$first_log" || (echo "should not have added the layer in the first build" && false)
+grep -vqE "ADD [0-9a-f]+\.tar /" "$first_log" || (echo "should not have added the layer in the first build" && false)
 echo "SECOND BUILD"
 build $second_log
 checks 0
-grep -q "ADD layer.tar /" "$second_log" || (echo "should have added the layer in the second build" && false)
+grep -qE "ADD [0-9a-f]+\.tar /" "$second_log" || (echo "should have added the layer in the second build" && false)
