@@ -50,6 +50,9 @@ lab.experiment('parseBuildLogAndHistory', function () {
       function (key) { process.env[key] = requiredEnvVars[key]; });
     done();
   });
+  lab.beforeEach(function (done) {
+    childProcess.exec('rm -rf ' + layerCacheDir + '/*', done);
+  });
 
   lab.experiment('succeeds', function () {
     lab.beforeEach(steps.makeWorkingFolders.bind(steps));
@@ -88,10 +91,9 @@ lab.experiment('parseBuildLogAndHistory', function () {
     lab.experiment('with an available layer cache', function () {
       lab.beforeEach(function (done) {
         var cmds = [
-          'mkdir -p /tmp/layer-cache/test-docker-tag',
-          'touch /tmp/layer-cache/test-docker-tag/' +
-            'hash.93f7657e7c42734aac70d134cecf53d3',
-          'touch /tmp/layer-cache/test-docker-tag/layer.tar'
+          'mkdir -p ' + layerCacheDir + '/test-docker-tag',
+          'touch ' + layerCacheDir + '/test-docker-tag/' +
+            '93f7657e7c42734aac70d134cecf53d3.tar'
         ].join(' && ');
         childProcess.exec(cmds, done);
       });
