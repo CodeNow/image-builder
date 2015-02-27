@@ -62,7 +62,7 @@ checks () {
   # layer-cache tests
   # directory and layer should exist
   test -d ./test-"$test_num"/layer-cache/test/test-built-image || (echo "directory for layer should exist" && false)
-  test -f ./test-"$test_num"/layer-cache/test/test-built-image/layer.tar || (echo "layer.tar should exist" && false)
+  ls ./test-"$test_num"/layer-cache/test/test-built-image/*.tar 1> /dev/null 2>&1 || (echo "layer.tar should exist" && false)
 }
 
 first_log=$(mktemp /tmp/log.XXXX)
@@ -71,8 +71,8 @@ second_log=$(mktemp /tmp/log.XXXX)
 echo "FIRST BUILD"
 build $first_log
 checks 1
-grep -vq "ADD layer.tar /" "$first_log" || (echo "should not have added the layer in the first build" && false)
+grep -vqE "ADD [0-9a-f]+\.tar /" "$first_log" || (echo "should not have added the layer in the first build" && false)
 echo "SECOND BUILD"
 build $second_log
 checks 0
-grep -q "ADD layer.tar /" "$second_log" || (echo "should have added the layer in the second build" && false)
+grep -qE "ADD [0-9a-f]+\.tar /" "$second_log" || (echo "should have added the layer in the second build" && false)
