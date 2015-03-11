@@ -16,6 +16,7 @@ var layerCacheDir = process.env.LAYER_CACHE_DIR;
 if (!layerCacheDir) {
   layerCacheDir = process.env.LAYER_CACHE_DIR = '/tmp/layer-cache';
 }
+
 // require this after we have now changed the env for the directories
 var steps = require('../../lib/steps');
 

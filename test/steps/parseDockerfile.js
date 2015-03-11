@@ -6,6 +6,8 @@ var expect = require('code').expect;
 
 var childProcess = require('child_process');
 var sinon = require('sinon');
+var fs = require('fs');
+var path = require('path');
 
 var cacheDir = process.env.CACHE_DIR;
 if (!cacheDir) {
@@ -15,6 +17,7 @@ var layerCacheDir = process.env.LAYER_CACHE_DIR;
 if (!layerCacheDir) {
   layerCacheDir = process.env.LAYER_CACHE_DIR = '/tmp/layer-cache';
 }
+
 // require this after we have now changed the env for the directories
 var steps = require('../../lib/steps');
 
@@ -22,10 +25,18 @@ var requiredEnvVars = {
   RUNNABLE_AWS_ACCESS_KEY: process.env.AWS_ACCESS_KEY,
   RUNNABLE_AWS_SECRET_KEY: process.env.AWS_SECRET_KEY
 };
+
 lab.before(function (done) {
+  process.env.RUNNABLE_WAITFORWEAVE =
+    'until grep -q ethwe /proc/net/dev; do sleep 1; done; ';
   Object.keys(requiredEnvVars).forEach(function (key) {
     process.env[key] = requiredEnvVars[key];
   });
+  done();
+});
+
+lab.after(function (done) {
+  process.env.RUNNABLE_WAITFORWEAVE = null;
   done();
 });
 
@@ -63,6 +74,10 @@ lab.experiment('parseDockerfile', function () {
           expect(!!steps.data.usingCache).to.be.false();
           expect(steps.data.cachedLine).to.not.be.undefined();
           expect(steps.data.createdByHash).to.not.be.undefined();
+          var dockerfile =
+            fs.readFileSync(path.join(steps.dirs.dockerContext, 'Dockerfile'))
+              .toString();
+          expect(dockerfile).to.contain(process.env.RUNNABLE_WAITFORWEAVE);
           done();
         });
       });
@@ -100,6 +115,10 @@ lab.experiment('parseDockerfile', function () {
           expect(!!steps.data.usingCache).to.be.false();
           expect(steps.data.cachedLine).to.not.be.undefined();
           expect(steps.data.createdByHash).to.not.be.undefined();
+          var dockerfile =
+            fs.readFileSync(path.join(steps.dirs.dockerContext, 'Dockerfile'))
+              .toString();
+          expect(dockerfile).to.contain(process.env.RUNNABLE_WAITFORWEAVE);
           done();
         });
       });
@@ -135,6 +154,10 @@ lab.experiment('parseDockerfile', function () {
           expect(!!steps.data.usingCache).to.be.false();
           expect(steps.data.cachedLine).to.be.undefined();
           expect(steps.data.createdByHash).to.be.undefined();
+          var dockerfile =
+            fs.readFileSync(path.join(steps.dirs.dockerContext, 'Dockerfile'))
+              .toString();
+          expect(dockerfile).to.contain(process.env.RUNNABLE_WAITFORWEAVE);
           done();
         });
       });
@@ -167,6 +190,10 @@ lab.experiment('parseDockerfile', function () {
           expect(steps.data.createdByHash).to.not.be.undefined();
           // using a cache!
           expect(childProcess.exec.callCount).to.equal(1);
+          var dockerfile =
+            fs.readFileSync(path.join(steps.dirs.dockerContext, 'Dockerfile'))
+              .toString();
+          expect(dockerfile).to.contain(process.env.RUNNABLE_WAITFORWEAVE);
           done();
         });
       });
