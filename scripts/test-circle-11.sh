@@ -24,7 +24,7 @@ docker run \
   -e RUNNABLE_IMAGE_BUILDER_NAME='test-image-builder' \
   -e RUNNABLE_IMAGE_BUILDER_TAG='latest' \
   -e DOCKER_IMAGE_BUILDER_LAYER_CACHE="`pwd`/test-$test_num/layer-cache" \
-  -e RUNNABLE_WAITFORWEAVE='echo waitForWeave; ' \
+  -e RUNNABLE_WAIT_FOR_WEAVE='echo waitForWeave; ' \
   -e RUNNABLE_SAURON_HOST="$(cat DOCKER_IP):5355" \
   -e RUNNABLE_NETWORK_DRIVER="test" \
   -v `pwd`/test-"$test_num":/cache:rw \
@@ -37,7 +37,7 @@ grep -q "waitForWeave" $build_log
 test "$?" = "0" || (echo "waitForWeave should be added" && false)
 
 ########################################################
-# if RUNNABLE_WAITFORWEAVE not set, do not append weave
+# if RUNNABLE_WAIT_FOR_WEAVE not set, do not append weave
 test_num="11.2"
 mkdir -p ./test-"$test_num"/"$full_repo"
 build_log=$(mktemp /tmp/log.XXXX)

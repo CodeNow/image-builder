@@ -16,7 +16,6 @@ var layerCacheDir = process.env.LAYER_CACHE_DIR;
 if (!layerCacheDir) {
   layerCacheDir = process.env.LAYER_CACHE_DIR = '/tmp/layer-cache';
 }
-
 // require this after we have now changed the env for the directories
 var steps = require('../../lib/steps');
 
@@ -24,14 +23,12 @@ var requiredEnvVars = {
   RUNNABLE_AWS_ACCESS_KEY: process.env.AWS_ACCESS_KEY,
   RUNNABLE_AWS_SECRET_KEY: process.env.AWS_SECRET_KEY
 };
-
 lab.before(function (done) {
   Object.keys(requiredEnvVars).forEach(function (key) {
     process.env[key] = requiredEnvVars[key];
   });
   done();
 });
-
 
 lab.experiment('runDockerBuild', function () {
   var dockerMockServer;

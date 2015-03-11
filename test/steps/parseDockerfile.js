@@ -17,7 +17,6 @@ var layerCacheDir = process.env.LAYER_CACHE_DIR;
 if (!layerCacheDir) {
   layerCacheDir = process.env.LAYER_CACHE_DIR = '/tmp/layer-cache';
 }
-
 // require this after we have now changed the env for the directories
 var steps = require('../../lib/steps');
 
@@ -27,7 +26,7 @@ var requiredEnvVars = {
 };
 
 lab.before(function (done) {
-  process.env.RUNNABLE_WAITFORWEAVE =
+  process.env.RUNNABLE_WAIT_FOR_WEAVE =
     'until grep -q ethwe /proc/net/dev; do sleep 1; done; ';
   Object.keys(requiredEnvVars).forEach(function (key) {
     process.env[key] = requiredEnvVars[key];
@@ -36,7 +35,7 @@ lab.before(function (done) {
 });
 
 lab.after(function (done) {
-  process.env.RUNNABLE_WAITFORWEAVE = null;
+  process.env.RUNNABLE_WAIT_FOR_WEAVE = null;
   done();
 });
 
@@ -77,7 +76,7 @@ lab.experiment('parseDockerfile', function () {
           var dockerfile =
             fs.readFileSync(path.join(steps.dirs.dockerContext, 'Dockerfile'))
               .toString();
-          expect(dockerfile).to.contain(process.env.RUNNABLE_WAITFORWEAVE);
+          expect(dockerfile).to.contain(process.env.RUNNABLE_WAIT_FOR_WEAVE);
           done();
         });
       });
@@ -118,7 +117,7 @@ lab.experiment('parseDockerfile', function () {
           var dockerfile =
             fs.readFileSync(path.join(steps.dirs.dockerContext, 'Dockerfile'))
               .toString();
-          expect(dockerfile).to.contain(process.env.RUNNABLE_WAITFORWEAVE);
+          expect(dockerfile).to.contain(process.env.RUNNABLE_WAIT_FOR_WEAVE);
           done();
         });
       });
@@ -157,7 +156,7 @@ lab.experiment('parseDockerfile', function () {
           var dockerfile =
             fs.readFileSync(path.join(steps.dirs.dockerContext, 'Dockerfile'))
               .toString();
-          expect(dockerfile).to.contain(process.env.RUNNABLE_WAITFORWEAVE);
+          expect(dockerfile).to.contain(process.env.RUNNABLE_WAIT_FOR_WEAVE);
           done();
         });
       });
@@ -193,7 +192,7 @@ lab.experiment('parseDockerfile', function () {
           var dockerfile =
             fs.readFileSync(path.join(steps.dirs.dockerContext, 'Dockerfile'))
               .toString();
-          expect(dockerfile).to.contain(process.env.RUNNABLE_WAITFORWEAVE);
+          expect(dockerfile).to.contain(process.env.RUNNABLE_WAIT_FOR_WEAVE);
           done();
         });
       });
