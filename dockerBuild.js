@@ -3,7 +3,7 @@
 
 var colors = require('colors');
 var async = require('async');
-var steps = require('./steps');
+var steps = require('./lib/steps');
 
 async.series([
     steps.checkForRequiredEnvVars,

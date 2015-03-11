@@ -9,8 +9,8 @@ test:
     - node scripts/start-proxy.js:
         background: true
     - ./scripts/getIpAddress.sh > DOCKER_IP
-    - docker build -t test-image-builder .
     - npm install
+    - docker build -t test-image-builder .
     - mkdir -p /tmp/cache
     - mkdir -p /tmp/layer-cache
   override:

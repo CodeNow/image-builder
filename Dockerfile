@@ -12,8 +12,7 @@ RUN mkdir $HOME/.ssh
 RUN ssh-keyscan -H -p 22 github.com >> $HOME/.ssh/known_hosts
 
 VOLUME /cache
-ADD ./lib/ /source
+ADD . /source
 
 WORKDIR /source
-RUN npm install
-CMD ["./dockerBuild.sh"]
+CMD ["/source/dockerBuild.sh"]
