@@ -21,21 +21,23 @@ lab.experiment('signal-client.js', function () {
         .post('/containers/123456/kill?signal=SIGINT')
         .reply(204);
 
-      signal.attachHostToContainer(1,1,123456, function(err, res) {
-        if (err) { return done(err); }
-        expect(res.statusCode).to.equal(200);
-        done();
-      });
+      signal.attachHostToContainer(1,1,{containerId: 123456},
+        function(err, res) {
+          if (err) { return done(err); }
+          expect(res.statusCode).to.equal(200);
+          done();
+        });
     });
     it('should return 500 statusCode', function(done) {
       var signal = new Signal(1,1);
       process.env.SAURON_FAIL = 'true';
-      signal.attachHostToContainer(1,1,123456, function(err, res) {
-        delete process.env.SAURON_FAIL;
-        if (err) { return done(err); }
-        expect(res.statusCode).to.equal(500);
-        done();
-      });
+      signal.attachHostToContainer(1,1,{containerId: 123456},
+        function(err, res) {
+          delete process.env.SAURON_FAIL;
+          if (err) { return done(err); }
+          expect(res.statusCode).to.equal(500);
+          done();
+        });
     });
   });
   lab.experiment('should error if invalid params', function () {
