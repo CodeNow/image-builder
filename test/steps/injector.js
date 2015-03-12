@@ -19,7 +19,7 @@ lab.experiment('injector.js', function () {
       'FROM ubuntu\nRUNRUN\ncmd sleep 99',
       'FROM ubuntu\nr un some stuff\ncmd sleep 99',
     ].forEach(function(item) {
-      it('should NOT add weave', function(done) {
+      it('should NOT add weave: '+item, function(done) {
         var dockerfile = parser(item).split('\n');
         expect(dockerfile).to.exist();
         done();
@@ -56,7 +56,7 @@ lab.experiment('injector.js', function () {
         'FROM ubuntu\n RUN  some stuff \ncmd sleep 99',
         'FROM ubuntu\n RUN \tsome stuff \ncmd sleep 99',
       ].forEach(function(item) {
-        it('should add weave to correct line', function(done) {
+        it('should add weave to correct line: ' + item, function(done) {
           var dockerfile = parser(item).split('\n');
           expect(dockerfile[0])
             .to.not.contain(process.env.RUNNABLE_WAIT_FOR_WEAVE);
@@ -110,7 +110,7 @@ lab.experiment('injector.js', function () {
         'FROM ubuntu\nRUNRUN\ncmd sleep 99',
         'FROM ubuntu\nr un some stuff\ncmd sleep 99',
       ].forEach(function(item) {
-        it('should NOT add weave', function(done) {
+        it('should NOT add weave: '+item, function(done) {
           var dockerfile = parser(item).split('\n');
           expect(dockerfile[0])
             .to.not.contain(process.env.RUNNABLE_WAIT_FOR_WEAVE);
