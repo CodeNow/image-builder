@@ -25,7 +25,7 @@ docker run \
   -e DOCKER_IMAGE_BUILDER_LAYER_CACHE="`pwd`/test-$test_num/layer-cache" \
   -e RUNNABLE_WAIT_FOR_WEAVE='trap "echo | nc localhost 5356" INT; nc -l 5356 & wait; ' \
   -e RUNNABLE_SAURON_HOST="$(cat DOCKER_IP):5355" \
-  -e RUNNABLE_NETWORK_DRIVER='test' \
+  -e RUNNABLE_NETWORK_DRIVER='signal' \
   -v `pwd`/test-"$test_num":/cache:rw \
   -v `pwd`/test-"$test_num"/layer-cache:/layer-cache \
   test-image-builder
@@ -56,7 +56,7 @@ docker run \
   -e DOCKER_IMAGE_BUILDER_LAYER_CACHE="`pwd`/test-$test_num/layer-cache" \
   -e RUNNABLE_WAIT_FOR_WEAVE='nc -l 5356; ' \
   -e RUNNABLE_SAURON_HOST="$(cat DOCKER_IP):5355" \
-  -e RUNNABLE_NETWORK_DRIVER='test' \
+  -e RUNNABLE_NETWORK_DRIVER='signal' \
   -e SAURON_FAIL='yes' \
   -v `pwd`/test-"$test_num":/cache:rw \
   -v `pwd`/test-"$test_num"/layer-cache:/layer-cache \
