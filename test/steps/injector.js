@@ -5,9 +5,9 @@ var lab = exports.lab = Lab.script();
 var expect = require('code').expect;
 var it = lab.test;
 
-var parser = require('../../lib/steps/parse.js');
+var parser = require('../../lib/steps/injector.js');
 
-lab.experiment('parse.js', function () {
+lab.experiment('injector.js', function () {
   lab.experiment('without weave', function () {
     [
       'FROM ubuntu\nrrun some stuff\ncmd sleep 99',
