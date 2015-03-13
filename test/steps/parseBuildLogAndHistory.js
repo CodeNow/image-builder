@@ -40,7 +40,6 @@ lab.experiment('parseBuildLogAndHistory', function () {
     dockerMockServer.close(done);
   });
   var requiredEnvVars = {
-    RUNNABLE_DOCKER: 'tcp://localhost:5555',
     RUNNABLE_DOCKERTAG: 'test-docker-tag',
     RUNNABLE_FILES: '{ "Dockerfile": "AolcUvaTfKOFJg74ABqL9NN08333MS_t" }',
     RUNNABLE_FILES_BUCKET: 'runnable.image-builder'

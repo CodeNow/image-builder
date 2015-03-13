@@ -1,6 +1,4 @@
 .git
-node_modules
-lib/node_modules
 scripts
 test-*
 layer-cache
