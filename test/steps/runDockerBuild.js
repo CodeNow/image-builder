@@ -32,10 +32,13 @@ lab.before(function (done) {
 
 lab.experiment('runDockerBuild', function () {
   var dockerMockServer;
+  var waitForWeave = process.env.RUNNABLE_WAIT_FOR_WEAVE;
   lab.before(function (done) {
+    process.env.RUNNABLE_WAIT_FOR_WEAVE = 'undefined';
     dockerMockServer = dockerMock.listen(5555, done);
   });
   lab.after(function (done) {
+    process.env.RUNNABLE_WAIT_FOR_WEAVE = waitForWeave;
     dockerMockServer.close(done);
   });
   var requiredEnvVars = {
@@ -91,20 +94,6 @@ lab.experiment('runDockerBuild', function () {
             done(err);
           });
         });
-      });
-    });
-  });
-
-  lab.experiment('fails', function () {
-    lab.beforeEach(function (done) {
-      delete process.env.RUNNABLE_DOCKERTAG;
-      done();
-    });
-    lab.test('when the required env vars are missing', function (done) {
-      steps.runDockerBuild(function (err) {
-        expect(!!err).to.be.true();
-        expect(err.message).to.match(/RUNNABLE_DOCKERTAG is missing/);
-        done();
       });
     });
   });
