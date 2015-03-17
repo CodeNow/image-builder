@@ -55,20 +55,6 @@ lab.experiment('runDockerBuild', function () {
     lab.beforeEach(steps.makeWorkingFolders.bind(steps));
     lab.beforeEach({ timeout: 5000 }, steps.downloadBuildFiles.bind(steps));
 
-    lab.experiment('if there is no dockerhost', function () {
-      lab.beforeEach(function (done) {
-        delete process.env.RUNNABLE_DOCKER;
-        done();
-      });
-
-      lab.test('should do nothing', function (done) {
-        steps.runDockerBuild(function (err) {
-          if (err) { return done(err); }
-          done();
-        });
-      });
-    });
-
     lab.experiment('if there is no docker build options', function () {
       lab.beforeEach(function (done) {
         delete process.env.RUNNABLE_DOCKER_BUILDOPTIONS;
