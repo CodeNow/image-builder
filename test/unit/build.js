@@ -40,8 +40,8 @@ lab.experiment('build.js unit test', function () {
   });
   lab.experiment('new test', function () {
     lab.it('should load without envs', function(done) {
-      delete process.env.RUNNABLE_WAIT_FOR_WEAVE;
-      delete process.env.RUNNABLE_DOCKER;
+      process.env.RUNNABLE_WAIT_FOR_WEAVE = 'undefined';
+      process.env.RUNNABLE_DOCKER = 'undefined';
       new Builder(defaultOps);
       done();
     });
