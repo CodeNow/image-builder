@@ -2,3 +2,4 @@ node_modules
 layer-cache
 image-builder.iml
 scripts/*.log
+DOCKER_IP
