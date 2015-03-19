@@ -8,6 +8,7 @@ var childProcess = require('child_process');
 var sinon = require('sinon');
 
 var dockerMock = require('docker-mock');
+var nock = require('nock');
 
 var cacheDir = process.env.CACHE_DIR;
 if (!cacheDir) {
@@ -34,19 +35,24 @@ lab.before(function (done) {
 lab.experiment('parseBuildLogAndHistory', function () {
   var dockerMockServer;
   lab.before(function (done) {
+    // this lets things through to docker mock. because nock.
+    nock('http://localhost:5555', { allowUnmocked: true })
+      .get('/_').reply(202);
     dockerMockServer = dockerMock.listen(5555, done);
   });
   lab.after(function (done) {
     dockerMockServer.close(done);
   });
   var requiredEnvVars = {
+    RUNNABLE_DOCKER: 'localhost:5555',
     RUNNABLE_DOCKERTAG: 'test-docker-tag',
     RUNNABLE_FILES: '{ "Dockerfile": "AolcUvaTfKOFJg74ABqL9NN08333MS_t" }',
     RUNNABLE_FILES_BUCKET: 'runnable.image-builder'
   };
   lab.beforeEach(function (done) {
-    Object.keys(requiredEnvVars).forEach(
-      function (key) { process.env[key] = requiredEnvVars[key]; });
+    Object.keys(requiredEnvVars).forEach(function (key) {
+      process.env[key] = requiredEnvVars[key];
+    });
     done();
   });
   lab.beforeEach(function (done) {

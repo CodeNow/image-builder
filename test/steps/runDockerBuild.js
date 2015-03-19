@@ -34,7 +34,7 @@ lab.experiment('runDockerBuild', function () {
   var dockerMockServer;
   var waitForWeave = process.env.RUNNABLE_WAIT_FOR_WEAVE;
   lab.before(function (done) {
-    process.env.RUNNABLE_WAIT_FOR_WEAVE = 'undefined';
+    delete process.env.RUNNABLE_WAIT_FOR_WEAVE;
     dockerMockServer = dockerMock.listen(5555, done);
   });
   lab.after(function (done) {
@@ -42,7 +42,7 @@ lab.experiment('runDockerBuild', function () {
     dockerMockServer.close(done);
   });
   var requiredEnvVars = {
-    RUNNABLE_DOCKER: 'tcp://localhost:5555',
+    RUNNABLE_DOCKER: 'localhost:5555',
     RUNNABLE_DOCKERTAG: 'test-docker-tag',
     RUNNABLE_FILES: '{ "Dockerfile": "K6cluDupwQdFRsuTPJ0SFUrxUB4lmF_Q" }',
     RUNNABLE_FILES_BUCKET: 'runnable.image-builder',

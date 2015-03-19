@@ -21,7 +21,14 @@ var requiredEnvVars = {
 };
 lab.beforeEach(function (done) {
   Object.keys(requiredEnvVars).forEach(function (key) {
+    expect(requiredEnvVars[key]).to.not.be.undefined();
     process.env[key] = requiredEnvVars[key];
+  });
+  done();
+});
+lab.afterEach(function (done) {
+  Object.keys(requiredEnvVars).forEach(function (key) {
+    delete process.env[key];
   });
   done();
 });

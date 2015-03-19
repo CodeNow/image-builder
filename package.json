@@ -29,7 +29,7 @@
     "sinon": "^1.12.2"
   },
   "scripts": {
-    "test": "./node_modules/.bin/lab --verbose --coverage --threshold 95",
+    "test": "./node_modules/.bin/lab --verbose --coverage --threshold 93",
     "lint": "./node_modules/.bin/jshint --verbose ."
   },
   "repository": {
