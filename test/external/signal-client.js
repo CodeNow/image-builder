@@ -5,7 +5,6 @@ var lab = exports.lab = Lab.script();
 var expect = require('code').expect;
 var it = lab.test;
 
-var url = require('url');
 var nock = require('nock');
 
 var Signal = require('../../lib/external/signal-client.js');
@@ -13,7 +12,7 @@ var Signal = require('../../lib/external/signal-client.js');
 lab.experiment('signal-client.js', function () {
   lab.experiment('attachHostToContainer', function () {
     lab.beforeEach(function (done) {
-      process.env.RUNNABLE_DOCKER = 'tcp://localhost:5555';
+      process.env.RUNNABLE_DOCKER = 'localhost:5555';
       done();
     });
     lab.afterEach(function (done){
@@ -23,10 +22,7 @@ lab.experiment('signal-client.js', function () {
     });
     it('should send SIGINT to container', function (done) {
       var signal = new Signal(1, 1);
-      var parsed = url.parse(process.env.RUNNABLE_DOCKER);
-      parsed.protocol = 'http:';
-      parsed = url.format(parsed);
-      nock(parsed, { allowUnmocked: true })
+      nock('http://' + process.env.RUNNABLE_DOCKER, { allowUnmocked: true })
         .post('/containers/123456/kill?signal=SIGINT')
         .reply(204);
 

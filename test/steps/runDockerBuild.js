@@ -42,7 +42,7 @@ lab.experiment('runDockerBuild', function () {
     dockerMockServer.close(done);
   });
   var requiredEnvVars = {
-    RUNNABLE_DOCKER: 'tcp://localhost:5555',
+    RUNNABLE_DOCKER: 'localhost:5555',
     RUNNABLE_DOCKERTAG: 'test-docker-tag',
     RUNNABLE_FILES: '{ "Dockerfile": "K6cluDupwQdFRsuTPJ0SFUrxUB4lmF_Q" }',
     RUNNABLE_FILES_BUCKET: 'runnable.image-builder',
