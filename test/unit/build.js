@@ -25,7 +25,7 @@ var ctx = {};
 lab.experiment('build.js unit test', function () {
 
   var saveEnvironmentVars = {
-    'RUNNABLE_DOCKER': 'localhost:5555',
+    'RUNNABLE_DOCKER': 'tcp://localhost:5555',
     'RUNNABLE_WAIT_FOR_WEAVE': 'waitForWeave; ',
     'RUNNABLE_SAURON_HOST': 'localhost:5555',
     'RUNNABLE_NETWORK_DRIVER': 'signal'

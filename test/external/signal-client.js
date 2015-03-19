@@ -12,7 +12,7 @@ var Signal = require('../../lib/external/signal-client.js');
 lab.experiment('signal-client.js', function () {
   lab.experiment('attachHostToContainer', function () {
     lab.beforeEach(function (done) {
-      process.env.RUNNABLE_DOCKER = 'localhost:5555';
+      process.env.RUNNABLE_DOCKER = 'tcp://localhost:5555';
       done();
     });
     lab.afterEach(function (done){
