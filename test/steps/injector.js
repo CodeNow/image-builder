@@ -9,21 +9,21 @@ var parser = require('../../lib/steps/injector.js');
 
 lab.experiment('injector.js', function () {
   lab.experiment('without weave', function () {
-    [
-      'FROM ubuntu\nrrun some stuff\ncmd sleep 99',
-      'FROM ubuntu\nruun some stuff\ncmd sleep 99',
-      'FROM ubuntu\nrunn some stuff\ncmd sleep 99',
-      'FROM ubuntu\nENV NO RUN\ncmd sleep 99',
-      'FROM ubuntu\nPORT RUN\ncmd sleep 99',
-      'FROM ubuntu\nFOO NO RUN\ncmd sleep 99',
-      'FROM ubuntu\nRUNRUN\ncmd sleep 99',
-      'FROM ubuntu\nr un some stuff\ncmd sleep 99',
-    ].forEach(function(item) {
-      it('should NOT add weave: '+item, function(done) {
+    it('should NOT add weave to various files', function(done) {
+      [
+        'FROM ubuntu\nrrun some stuff\ncmd sleep 99',
+        'FROM ubuntu\nruun some stuff\ncmd sleep 99',
+        'FROM ubuntu\nrunn some stuff\ncmd sleep 99',
+        'FROM ubuntu\nENV NO RUN\ncmd sleep 99',
+        'FROM ubuntu\nPORT RUN\ncmd sleep 99',
+        'FROM ubuntu\nFOO NO RUN\ncmd sleep 99',
+        'FROM ubuntu\nRUNRUN\ncmd sleep 99',
+        'FROM ubuntu\nr un some stuff\ncmd sleep 99',
+      ].forEach(function(item) {
         var dockerfile = parser(item).split('\n');
         expect(dockerfile).to.exist();
-        done();
       });
+      done();
     });
   });
 
@@ -41,22 +41,22 @@ lab.experiment('injector.js', function () {
     });
 
     lab.experiment('valid', function () {
-      [
-        'FROM ubuntu\nrun some stuff\ncmd sleep 99',
-        'FROM ubuntu\nruN some stuff\ncmd sleep 99',
-        'FROM ubuntu\nrUn some stuff\ncmd sleep 99',
-        'FROM ubuntu\nrUN some stuff\ncmd sleep 99',
-        'FROM ubuntu\nRun some stuff\ncmd sleep 99',
-        'FROM ubuntu\nRuN some stuff\ncmd sleep 99',
-        'FROM ubuntu\nRUn some stuff\ncmd sleep 99',
-        'FROM ubuntu\nRUN some stuff\ncmd sleep 99',
-        'FROM ubuntu\nRUN some stuff \ncmd sleep 99',
-        'FROM ubuntu\n RUN some stuff\ncmd sleep 99',
-        'FROM ubuntu\n RUN some stuff \ncmd sleep 99',
-        'FROM ubuntu\n RUN  some stuff \ncmd sleep 99',
-        'FROM ubuntu\n RUN \tsome stuff \ncmd sleep 99',
-      ].forEach(function(item) {
-        it('should add weave to correct line: ' + item, function(done) {
+      it('should add weave to correct line where appropriate', function(done) {
+        [
+          'FROM ubuntu\nrun some stuff\ncmd sleep 99',
+          'FROM ubuntu\nruN some stuff\ncmd sleep 99',
+          'FROM ubuntu\nrUn some stuff\ncmd sleep 99',
+          'FROM ubuntu\nrUN some stuff\ncmd sleep 99',
+          'FROM ubuntu\nRun some stuff\ncmd sleep 99',
+          'FROM ubuntu\nRuN some stuff\ncmd sleep 99',
+          'FROM ubuntu\nRUn some stuff\ncmd sleep 99',
+          'FROM ubuntu\nRUN some stuff\ncmd sleep 99',
+          'FROM ubuntu\nRUN some stuff \ncmd sleep 99',
+          'FROM ubuntu\n RUN some stuff\ncmd sleep 99',
+          'FROM ubuntu\n RUN some stuff \ncmd sleep 99',
+          'FROM ubuntu\n RUN  some stuff \ncmd sleep 99',
+          'FROM ubuntu\n RUN \tsome stuff \ncmd sleep 99',
+        ].forEach(function(item) {
           var dockerfile = parser(item).split('\n');
           expect(dockerfile[0])
             .to.not.contain(process.env.RUNNABLE_WAIT_FOR_WEAVE);
@@ -64,8 +64,8 @@ lab.experiment('injector.js', function () {
             .to.contain(process.env.RUNNABLE_WAIT_FOR_WEAVE);
           expect(dockerfile[2])
             .to.not.contain(process.env.RUNNABLE_WAIT_FOR_WEAVE);
-          done();
         });
+        done();
       });
 
       it('should add weave to both lines', function(done) {
@@ -100,17 +100,17 @@ lab.experiment('injector.js', function () {
     });
 
     lab.experiment('invalid', function () {
-      [
-        'FROM ubuntu\nrrun some stuff\ncmd sleep 99',
-        'FROM ubuntu\nruun some stuff\ncmd sleep 99',
-        'FROM ubuntu\nrunn some stuff\ncmd sleep 99',
-        'FROM ubuntu\nENV NO RUN\ncmd sleep 99',
-        'FROM ubuntu\nPORT RUN\ncmd sleep 99',
-        'FROM ubuntu\nFOO NO RUN\ncmd sleep 99',
-        'FROM ubuntu\nRUNRUN\ncmd sleep 99',
-        'FROM ubuntu\nr un some stuff\ncmd sleep 99',
-      ].forEach(function(item) {
-        it('should NOT add weave: '+item, function(done) {
+      it('should NOT add weave', function(done) {
+        [
+          'FROM ubuntu\nrrun some stuff\ncmd sleep 99',
+          'FROM ubuntu\nruun some stuff\ncmd sleep 99',
+          'FROM ubuntu\nrunn some stuff\ncmd sleep 99',
+          'FROM ubuntu\nENV NO RUN\ncmd sleep 99',
+          'FROM ubuntu\nPORT RUN\ncmd sleep 99',
+          'FROM ubuntu\nFOO NO RUN\ncmd sleep 99',
+          'FROM ubuntu\nRUNRUN\ncmd sleep 99',
+          'FROM ubuntu\nr un some stuff\ncmd sleep 99',
+        ].forEach(function(item) {
           var dockerfile = parser(item).split('\n');
           expect(dockerfile[0])
             .to.not.contain(process.env.RUNNABLE_WAIT_FOR_WEAVE);
@@ -118,8 +118,8 @@ lab.experiment('injector.js', function () {
             .to.not.contain(process.env.RUNNABLE_WAIT_FOR_WEAVE);
           expect(dockerfile[2])
             .to.not.contain(process.env.RUNNABLE_WAIT_FOR_WEAVE);
-          done();
         });
+        done();
       });
     });
   });

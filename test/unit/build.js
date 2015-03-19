@@ -4,7 +4,12 @@ var Lab = require('lab');
 var lab = exports.lab = Lab.script();
 var expect = require('code').expect;
 var sinon = require('sinon');
+
+var tar = require('tar-fs');
+var events = require('events');
+var fs = require('fs');
 var Builder = require('../../lib/steps/build.js');
+var network = require('../../lib/external/network.js');
 
 var defaultOps = {
   dirs: {
@@ -19,114 +24,105 @@ var defaultOps = {
 var ctx = {};
 lab.experiment('build.js unit test', function () {
 
+  var saveEnvironmentVars = {
+    'RUNNABLE_DOCKER': 'localhost:5555',
+    'RUNNABLE_WAIT_FOR_WEAVE': 'waitForWeave; ',
+    'RUNNABLE_SAURON_HOST': 'localhost:5555',
+    'RUNNABLE_NETWORK_DRIVER': 'signal'
+  };
   lab.beforeEach(function (done) {
-    ctx.RUNNABLE_DOCKER = process.env.RUNNABLE_DOCKER;
-    process.env.RUNNABLE_DOCKER = 'localhost:4242';
-    ctx.oldWait = process.env.RUNNABLE_WAIT_FOR_WEAVE;
-    process.env.RUNNABLE_WAIT_FOR_WEAVE = 'waitForWeave; ';
-    ctx.oldSauronHost = process.env.RUNNABLE_SAURON_HOST;
-    process.env.RUNNABLE_SAURON_HOST = 'localhost:4242';
-    ctx.oldDriver = process.env.RUNNABLE_NETWORK_DRIVER;
-    process.env.RUNNABLE_NETWORK_DRIVER = 'signal';
+    Object.keys(saveEnvironmentVars).forEach(function (key) {
+      ctx[key] = process.env[key];
+      process.env[key] = saveEnvironmentVars[key];
+    });
     done();
   });
   lab.afterEach(function (done) {
-    process.env.RUNNABLE_DOCKER = ctx.RUNNABLE_DOCKER;
-    process.env.RUNNABLE_WAIT_FOR_WEAVE = ctx.oldWait;
-    process.env.RUNNABLE_SAURON_HOST = ctx.oldSauronHost;
-    process.env.RUNNABLE_NETWORK_DRIVER = ctx.oldDriver;
-    ctx = {};
+    Object.keys(saveEnvironmentVars).forEach(function (key) {
+      process.env[key] = ctx[key];
+      delete ctx[key];
+    });
     done();
   });
+
   lab.experiment('new test', function () {
     lab.it('should load without envs', function(done) {
-      process.env.RUNNABLE_WAIT_FOR_WEAVE = 'undefined';
-      process.env.RUNNABLE_DOCKER = 'undefined';
+      delete process.env.RUNNABLE_WAIT_FOR_WEAVE;
+      delete process.env.RUNNABLE_DOCKER;
       new Builder(defaultOps);
       done();
     });
   });
+
   lab.experiment('runDockerBuild', function () {
     lab.it('should run tar and build', function (done) {
       var build = new Builder(defaultOps);
-      var stubTarContext = sinon.stub(build , 'tarContext', function (cb) {
-        cb();
-      });
-      var stubBuildImage = sinon.stub(build , 'startImageBuild', function (cb) {
-        cb();
-      });
+      sinon.stub(build, 'tarContext').yields();
+      sinon.stub(build, 'startImageBuild').yields();
 
       build.runDockerBuild(function (err) {
         if (err) { return done(err); }
-        expect(stubTarContext.calledOnce).to.equal(true);
-        expect(stubBuildImage.calledOnce).to.equal(true);
-        stubTarContext.restore();
-        stubBuildImage.restore();
+        expect(build.tarContext.calledOnce).to.equal(true);
+        expect(build.startImageBuild.calledOnce).to.equal(true);
+        build.tarContext.restore();
+        build.startImageBuild.restore();
         done();
       });
     });
   });
+
   lab.experiment('tarContext', function () {
     lab.it('should set tarPath and return on finish', function (done) {
-      var fs = require('fs');
-      var stubFs = sinon.stub(fs , 'createWriteStream');
-
-      var tar = require('tar-fs');
-      var events = require('events');
       var finishEmitter = new events.EventEmitter();
-      var stubPack = sinon.stub(tar , 'pack', function () {
-        return {
+      sinon.stub(fs , 'createWriteStream');
+      sinon.stub(tar , 'pack').returns({
           pipe:  function () {
             return finishEmitter;
           }
-        };
-      });
+        });
       var build = new Builder(defaultOps);
       build.tarContext(function (err) {
         if (err) { return done(err); }
         expect(
-          stubFs.withArgs(defaultOps.dirs.dockerContext+'.tar').calledOnce)
+          fs.createWriteStream
+            .withArgs(defaultOps.dirs.dockerContext+'.tar').calledOnce)
           .to.equal(true);
-        expect(build.tarPath)
-          .to.equal(defaultOps.dirs.dockerContext+'.tar');
-        stubPack.restore();
-        stubFs.restore();
+        expect(build.tarPath).to.equal(defaultOps.dirs.dockerContext+'.tar');
+        tar.pack.restore();
+        fs.createWriteStream.restore();
         done();
       });
       finishEmitter.emit('finish');
     });
   });
+
   lab.experiment('startImageBuild', function () {
     lab.it('should call buildImage with correct tag', function (done) {
-      var docker = require('../../lib/external/docker.js');
       var build = new Builder(defaultOps);
       build.tarPath = '/test/path';
 
-      var stubBuildImage = sinon.stub(docker , 'buildImage',
+      sinon.stub(build.docker, 'buildImage',
         function (tarPath, opts, cb) {
           expect(tarPath).to.equal(build.tarPath);
           expect(opts).to.contain({ t: process.env.RUNNABLE_DOCKERTAG });
           cb();
         });
 
-      var stubHandleBuild = sinon.stub(build , 'handleBuild',
-        function (res, cb) {
-          cb();
-      });
+      sinon.stub(build, 'handleBuild').yields();
 
       build.startImageBuild(function(err) {
         if (err) { return done(err); }
-        stubHandleBuild.restore();
-        stubBuildImage.restore();
+        build.docker.buildImage.restore();
+        build.handleBuild.restore();
         done();
       });
     });
+
     lab.it('should callback error is buildImage errored', function (done) {
-      var docker = require('../../lib/external/docker.js');
       var build = new Builder(defaultOps);
       build.tarPath = '/test/path';
 
-      var stubBuildImage = sinon.stub(docker , 'buildImage',
+      sinon.stub(build.docker, 'buildImage',
         function (tarPath, opts, cb) {
           expect(tarPath).to.equal(build.tarPath);
           expect(opts).to.contain({ t: process.env.RUNNABLE_DOCKERTAG });
@@ -134,7 +130,7 @@ lab.experiment('build.js unit test', function () {
         });
 
       build.startImageBuild(function(err) {
-        stubBuildImage.restore();
+        build.docker.buildImage.restore();
         if (err) {
           return done();
         }
@@ -142,33 +138,32 @@ lab.experiment('build.js unit test', function () {
       });
     });
   });
+
   lab.experiment('handleBuild', function () {
     lab.it('should call handleBuildData on data emit', function (done) {
       var build = new Builder(defaultOps);
-      var stubHandleBuildData = sinon
-        .stub(build , 'handleBuildData', function () {
-          stubHandleBuildData.restore();
-          done();
-        });
+      sinon.stub(build, 'handleBuildData', function () {
+        build.handleBuildData.restore();
+        done();
+      });
 
-      var events = require('events');
       var dataEmitter = new events.EventEmitter();
 
-      build.handleBuild(dataEmitter, done);
+      build.handleBuild(dataEmitter, function () {});
       dataEmitter.emit('data');
     });
+
     lab.it('should callback on end emit', function (done) {
       var build = new Builder(defaultOps);
-      var events = require('events');
       var dataEmitter = new events.EventEmitter();
 
       build.handleBuild(dataEmitter, done);
       dataEmitter.emit('end');
     });
+
     lab.it('should callback with error on end emit', function (done) {
       var build = new Builder(defaultOps);
       build.buildErr = 'some type of err';
-      var events = require('events');
       var dataEmitter = new events.EventEmitter();
 
       build.handleBuild(dataEmitter, function(err) {
@@ -178,9 +173,9 @@ lab.experiment('build.js unit test', function () {
       dataEmitter.emit('end');
     });
   });
+
   lab.experiment('handleBuildData', function () {
     lab.it('should set buildErr on error', function (done) {
-      var fs = require('fs');
       var stubFs = sinon.stub(fs , 'appendFileSync');
       var testErr = 'some error';
       var ops = {
@@ -205,10 +200,8 @@ lab.experiment('build.js unit test', function () {
       stubFs.restore();
       done();
     });
+
     lab.it('should set waitForWeave if line match', function (done) {
-
-
-      var fs = require('fs');
       var stubFs = sinon.stub(fs , 'appendFileSync');
       var testString = 'RUN ' +
         process.env.RUNNABLE_WAIT_FOR_WEAVE +
@@ -239,8 +232,8 @@ lab.experiment('build.js unit test', function () {
       stubFs.restore();
       done();
     });
+
     lab.it('should just print it not special line', function (done) {
-      var fs = require('fs');
       var stubFs = sinon.stub(fs , 'appendFileSync');
       var testString = '-----> using cache';
 
@@ -267,8 +260,8 @@ lab.experiment('build.js unit test', function () {
       stubFs.restore();
       done();
     });
+
     lab.it('should call network attach if attach needed', function (done) {
-      var fs = require('fs');
       var stubFs = sinon.stub(fs , 'appendFileSync');
       var testString = '234123512345';
 
@@ -303,47 +296,40 @@ lab.experiment('build.js unit test', function () {
       done();
     });
   });
+
   lab.describe('handleNetworkAttach', function() {
     lab.it('should ignore if not running in', function(done) {
-      var  network = require('../../lib/external/network.js');
-      var stubAttach = sinon.stub(network , 'attach', function () {
-        throw new Error('should not have gotten called');
-      });
+      sinon.stub(network, 'attach');
       var build = new Builder(defaultOps);
-      var testString = 'using cache';
-      build.handleNetworkAttach({stream: testString});
-
-      stubAttach.restore();
+      build.handleNetworkAttach({ stream: 'test string' });
+      expect(network.attach.called).to.equal(false);
+      // this only works because it's synchronous
+      network.attach.restore();
       done();
     });
     lab.it('should call attach if Running in', function(done) {
       var testId = '1234312453215';
       var testString = 'Running in ' + testId + ' \n ';
 
-      var  network = require('../../lib/external/network.js');
-      var stubAttach = sinon.stub(network , 'attach',
-        function (containerId, cb) {
+      sinon.stub(network , 'attach',
+        function (containerId) {
           expect(containerId).to.equal(testId);
-          cb();
-      });
-      var build = new Builder(defaultOps);
-
-      var stubPostNetworkAttach = sinon.stub(build , 'postNetworkAttach',
-        function () {
-          stubAttach.restore();
-          stubPostNetworkAttach.restore();
+          expect(network.attach.calledOnce).to.equal(true);
+          network.attach.restore();
           done();
       });
-      build.handleNetworkAttach({stream: testString});
+
+      var build = new Builder(defaultOps);
+      build.handleNetworkAttach({ stream: testString });
     });
   });
+
   lab.describe('handleNetworkAttach', function() {
     lab.it('should kill container if error on attach', function(done) {
       var build = new Builder(defaultOps);
       var testContainerId = '132465789';
 
-      var docker = require('../../lib/external/docker.js');
-      var stubGetContainer = sinon.stub(docker , 'getContainer',
+      sinon.stub(build.docker, 'getContainer',
         function (containerId) {
           expect(containerId).to.equal(testContainerId);
           return {
@@ -352,30 +338,29 @@ lab.experiment('build.js unit test', function () {
             }
           };
       });
-      var stubExit = sinon.stub(process , 'exit',
+      sinon.stub(process , 'exit',
         function (code) {
           expect(code).to.equal(1);
-          stubExit.restore();
-          stubGetContainer.restore();
+          build.docker.getContainer.restore();
+          process.exit.restore();
           done();
       });
 
-
       build.postNetworkAttach(testContainerId)('some error');
     });
+
     lab.it('should do nothing if error', function(done) {
       var build = new Builder(defaultOps);
       var testContainerId = '132465789';
 
-      var docker = require('../../lib/external/docker.js');
-      var stubGetContainer = sinon.stub(docker , 'getContainer',
+      sinon.stub(build.docker, 'getContainer',
         function() {
         throw new Error('should have been called');
       });
 
       build.postNetworkAttach(testContainerId)(null);
-
-      stubGetContainer.restore();
+      // this again only works because it's syncronous
+      build.docker.getContainer.restore();
       done();
     });
   });

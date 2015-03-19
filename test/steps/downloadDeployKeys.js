@@ -28,6 +28,12 @@ lab.beforeEach(function (done) {
   });
   done();
 });
+lab.afterEach(function (done) {
+  Object.keys(requiredEnvVars).forEach(function (key) {
+    delete process.env[key];
+  });
+  done();
+});
 
 lab.experiment('downloadDeployKeys', function () {
   var requiredEnvVars = {
