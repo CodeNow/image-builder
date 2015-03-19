@@ -57,6 +57,16 @@ lab.experiment('build.js unit test', function () {
   lab.experiment('runDockerBuild', function () {
     lab.it('should run tar and build', function (done) {
       var build = new Builder(defaultOps);
+      var error = 'some error';
+      sinon.stub(build, 'tarContext').yields(error);
+
+      build.runDockerBuild(function (err) {
+        if (err === error) { return done(); }
+        done(new Error('should have errored'));
+      });
+    });
+    lab.it('should run tar and build', function (done) {
+      var build = new Builder(defaultOps);
       sinon.stub(build, 'tarContext').yields();
       sinon.stub(build, 'startImageBuild').yields();
 
@@ -159,6 +169,17 @@ lab.experiment('build.js unit test', function () {
 
       build.handleBuild(dataEmitter, done);
       dataEmitter.emit('end');
+    });
+
+    lab.it('should callback on error emit', function (done) {
+      var build = new Builder(defaultOps);
+      var dataEmitter = new events.EventEmitter();
+      var error = 'some error';
+      build.handleBuild(dataEmitter, function (err) {
+        if (err === error) { return done(); }
+        done(new Error('should have errored'));
+      });
+      dataEmitter.emit('error', error);
     });
 
     lab.it('should callback with error on end emit', function (done) {
