@@ -39,23 +39,23 @@ lab.experiment('docker.js unit test', function () {
       }
       done(new Error('should have thrown'));
     });
-    ['google',
-    'unix',
-    'unix:/bad/place',
-    'http://',
-    'http://google',
-    'http://:235',
-    ':235',
-    'google:123']
-    .forEach(function(testItem) {
-      lab.it('should throw if RUNNABLE_DOCKER '+testItem, function(done) {
+    lab.it('should throw if RUNNABLE_DOCKER has invalid input', function(done) {
+      ['google',
+      'unix',
+      'unix:/bad/place',
+      'http://',
+      'http://google',
+      'http://:235',
+      ':235',
+      'google:123']
+      .forEach(function(testItem) {
         process.env.RUNNABLE_DOCKER = testItem;
         try {
           docker();
         } catch (err) {
           return done();
         }
-        done(new Error('should have thrown'));
+        done(new Error(testItem+'should have thrown'));
       });
     });
   });
