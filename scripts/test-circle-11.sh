@@ -18,7 +18,7 @@ docker run \
   -e RUNNABLE_DEPLOYKEY='flaming-octo-nemesis.key' \
   -e RUNNABLE_REPO='git@github.com:bkendall/flaming-octo-nemesis' \
   -e RUNNABLE_COMMITISH='master' \
-  -e RUNNABLE_DOCKER="$(cat DOCKER_IP):5354" \
+  -e RUNNABLE_DOCKER="tcp://$(cat DOCKER_IP):5354" \
   -e RUNNABLE_DOCKERTAG='test/test-built-image:sometag' \
   -e RUNNABLE_DOCKER_BUILDOPTIONS='' \
   -e RUNNABLE_IMAGE_BUILDER_NAME='test-image-builder' \
@@ -52,7 +52,7 @@ docker run \
   -e RUNNABLE_DEPLOYKEY='flaming-octo-nemesis.key' \
   -e RUNNABLE_REPO='git@github.com:bkendall/flaming-octo-nemesis' \
   -e RUNNABLE_COMMITISH='master' \
-  -e RUNNABLE_DOCKER="$(cat DOCKER_IP):5354" \
+  -e RUNNABLE_DOCKER="tcp://$(cat DOCKER_IP):5354" \
   -e RUNNABLE_DOCKERTAG='test/test-built-image:sometag' \
   -e RUNNABLE_DOCKER_BUILDOPTIONS='' \
   -e RUNNABLE_IMAGE_BUILDER_NAME='test-image-builder' \

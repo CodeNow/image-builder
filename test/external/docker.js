@@ -47,16 +47,16 @@ lab.experiment('docker.js unit test', function () {
       'http://google',
       'http://:235',
       ':235',
-      'google:123']
-      .forEach(function(testItem) {
+      'google:123'].forEach(function(testItem) {
         process.env.RUNNABLE_DOCKER = testItem;
         try {
           docker();
         } catch (err) {
-          return done();
+          return;
         }
-        done(new Error(testItem+'should have thrown'));
+        console.log(testItem);
       });
+      done();
     });
   });
 });
