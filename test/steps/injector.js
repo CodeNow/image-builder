@@ -28,7 +28,6 @@ lab.experiment('injector.js', function () {
   });
 
   lab.experiment('with weave', function () {
-    var oldEnv = process.env.RUNNABLE_WAIT_FOR_WEAVE;
     lab.before(function(done) {
       process.env.RUNNABLE_WAIT_FOR_WEAVE =
         'until grep -q ethwe /proc/net/dev; do sleep 1; done; ';
@@ -36,7 +35,7 @@ lab.experiment('injector.js', function () {
     });
 
     lab.after(function (done) {
-      process.env.RUNNABLE_WAIT_FOR_WEAVE = oldEnv;
+      delete process.env.RUNNABLE_WAIT_FOR_WEAVE;
       done();
     });
 

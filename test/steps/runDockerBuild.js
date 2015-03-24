@@ -32,13 +32,10 @@ lab.before(function (done) {
 
 lab.experiment('runDockerBuild', function () {
   var dockerMockServer;
-  var waitForWeave = process.env.RUNNABLE_WAIT_FOR_WEAVE;
   lab.before(function (done) {
-    delete process.env.RUNNABLE_WAIT_FOR_WEAVE;
     dockerMockServer = dockerMock.listen(5555, done);
   });
   lab.after(function (done) {
-    process.env.RUNNABLE_WAIT_FOR_WEAVE = waitForWeave;
     dockerMockServer.close(done);
   });
   var requiredEnvVars = {

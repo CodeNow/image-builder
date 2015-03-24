@@ -35,7 +35,7 @@ lab.before(function (done) {
 });
 
 lab.after(function (done) {
-  process.env.RUNNABLE_WAIT_FOR_WEAVE = null;
+  delete process.env.RUNNABLE_WAIT_FOR_WEAVE;
   done();
 });
 
