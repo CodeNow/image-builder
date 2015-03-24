@@ -25,8 +25,8 @@ docker run \
   -e RUNNABLE_IMAGE_BUILDER_TAG='latest' \
   -e DOCKER_IMAGE_BUILDER_LAYER_CACHE="`pwd`/test-$test_num/layer-cache" \
   -e RUNNABLE_WAIT_FOR_WEAVE='echo waitForWeave; ' \
-  -e RUNNABLE_NETWORK_IP = '10.0.0.0' \
-  -e RUNNABLE_HOST_IP = '10.0.0.1' \
+  -e RUNNABLE_NETWORK_IP='10.0.0.0' \
+  -e RUNNABLE_HOST_IP='10.0.0.1' \
   -e RUNNABLE_SAURON_HOST="$(cat DOCKER_IP):5355" \
   -e RUNNABLE_NETWORK_DRIVER="signal" \
   -v `pwd`/test-"$test_num":/cache:rw \
