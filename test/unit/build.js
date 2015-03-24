@@ -9,7 +9,6 @@ var tar = require('tar-fs');
 var events = require('events');
 var fs = require('fs');
 var Builder = require('../../lib/steps/build.js');
-var network = require('../../lib/external/network.js');
 
 var defaultOps = {
   dirs: {
@@ -22,11 +21,22 @@ var defaultOps = {
 };
 
 var ctx = {};
+function setupWeaveEnv () {
+  process.env.RUNNABLE_WAIT_FOR_WEAVE = 'waitForWeave; ';
+  process.env.RUNNABLE_NETWORK_IP = '10.0.0.0';
+  process.env.RUNNABLE_HOST_IP = '10.0.0.1';
+}
+
+function cleanWeaveEnv () {
+  delete process.env.RUNNABLE_WAIT_FOR_WEAVE;
+  delete process.env.RUNNABLE_NETWORK_IP;
+  delete process.env.RUNNABLE_HOST_IP;
+}
+
 lab.experiment('build.js unit test', function () {
 
   var saveEnvironmentVars = {
     'RUNNABLE_DOCKER': 'tcp://localhost:5555',
-    'RUNNABLE_WAIT_FOR_WEAVE': 'waitForWeave; ',
     'RUNNABLE_SAURON_HOST': 'localhost:5555',
     'RUNNABLE_NETWORK_DRIVER': 'signal'
   };
@@ -47,7 +57,6 @@ lab.experiment('build.js unit test', function () {
 
   lab.experiment('new test', function () {
     lab.it('should load without envs', function(done) {
-      delete process.env.RUNNABLE_WAIT_FOR_WEAVE;
       delete process.env.RUNNABLE_DOCKER;
       new Builder(defaultOps);
       done();
@@ -224,6 +233,8 @@ lab.experiment('build.js unit test', function () {
 
     lab.it('should set waitForWeave if line match', function (done) {
       var stubFs = sinon.stub(fs , 'appendFileSync');
+      setupWeaveEnv();
+
       var testString = 'RUN ' +
         process.env.RUNNABLE_WAIT_FOR_WEAVE +
         ' sleep 100';
@@ -243,6 +254,7 @@ lab.experiment('build.js unit test', function () {
       };
 
       var build = new Builder(ops);
+
       build.handleBuildData(JSON.stringify({stream: testString}));
 
       expect(build.needAttach).to.equal(true);
@@ -250,6 +262,7 @@ lab.experiment('build.js unit test', function () {
         stubFs.withArgs(ops.logs.dockerBuild, testString).calledOnce)
         .to.equal(true);
 
+      cleanWeaveEnv();
       stubFs.restore();
       done();
     });
@@ -319,28 +332,31 @@ lab.experiment('build.js unit test', function () {
   });
 
   lab.describe('handleNetworkAttach', function() {
-    lab.it('should ignore if not running in', function(done) {
-      sinon.stub(network, 'attach');
+    lab.it('should ignore line if not running in', function(done) {
+      setupWeaveEnv();
       var build = new Builder(defaultOps);
+      sinon.stub(build.network, 'attach');
       build.handleNetworkAttach({ stream: 'test string' });
-      expect(network.attach.called).to.equal(false);
+      expect(build.network.attach.called).to.equal(false);
       // this only works because it's synchronous
-      network.attach.restore();
+      build.network.attach.restore();
+      cleanWeaveEnv();
       done();
     });
     lab.it('should call attach if Running in', function(done) {
       var testId = '1234312453215';
       var testString = 'Running in ' + testId + ' \n ';
-
-      sinon.stub(network , 'attach',
-        function (containerId) {
-          expect(containerId).to.equal(testId);
-          expect(network.attach.calledOnce).to.equal(true);
-          network.attach.restore();
-          done();
-      });
+      setupWeaveEnv();
 
       var build = new Builder(defaultOps);
+      sinon.stub(build.network , 'attach',
+        function (containerId) {
+          expect(containerId).to.equal(testId);
+          expect(build.network.attach.calledOnce).to.equal(true);
+          build.network.attach.restore();
+          cleanWeaveEnv();
+          done();
+      });
       build.handleNetworkAttach({ stream: testString });
     });
   });
