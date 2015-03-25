@@ -295,6 +295,62 @@ lab.experiment('build.js unit test', function () {
       done();
     });
 
+    lab.it('should just print if no stream in data', function (done) {
+      // delete process.env.RUNNABLE_WAIT_FOR_WEAVE;
+      var stubFs = sinon.stub(fs , 'appendFileSync');
+
+      var ops = {
+        dirs: {
+          dockerContext: '/test/context'
+        },
+        logs: {
+          dockerBuild: '/test/log'
+        },
+        saveToLogs: function () {
+          return function(err, stdout) {
+            expect(stdout).to.equal('');
+          };
+        }
+      };
+
+      var build = new Builder(ops);
+      build.handleBuildData(JSON.stringify({}));
+      expect(build.needAttach).to.not.exist();
+      expect(
+        stubFs.withArgs(ops.logs.dockerBuild, '').calledOnce)
+        .to.equal(true);
+      stubFs.restore();
+      done();
+    });
+
+    lab.it('should just print nothing if other keys passed', function (done) {
+      // delete process.env.RUNNABLE_WAIT_FOR_WEAVE;
+      var stubFs = sinon.stub(fs , 'appendFileSync');
+
+      var ops = {
+        dirs: {
+          dockerContext: '/test/context'
+        },
+        logs: {
+          dockerBuild: '/test/log'
+        },
+        saveToLogs: function () {
+          return function(err, stdout) {
+            expect(stdout).to.equal('');
+          };
+        }
+      };
+
+      var build = new Builder(ops);
+      build.handleBuildData(JSON.stringify({other: 'key'}));
+      expect(build.needAttach).to.not.exist();
+      expect(
+        stubFs.withArgs(ops.logs.dockerBuild, '').calledOnce)
+        .to.equal(true);
+      stubFs.restore();
+      done();
+    });
+
     lab.it('should call network attach if attach needed', function (done) {
       var stubFs = sinon.stub(fs , 'appendFileSync');
       var testString = '234123512345';
@@ -317,7 +373,7 @@ lab.experiment('build.js unit test', function () {
       build.needAttach = true;
       var stubNetworkAttach= sinon
         .stub(build , 'handleNetworkAttach', function (data) {
-          expect(data).to.contain({stream: testString});
+          expect(data).to.equal(testString);
         });
       build.handleBuildData(JSON.stringify({stream: testString}));
       expect(build.needAttach).to.equal(false);
@@ -336,7 +392,7 @@ lab.experiment('build.js unit test', function () {
       setupWeaveEnv();
       var build = new Builder(defaultOps);
       sinon.stub(build.network, 'attach');
-      build.handleNetworkAttach({ stream: 'test string' });
+      build.handleNetworkAttach('test string');
       expect(build.network.attach.called).to.equal(false);
       // this only works because it's synchronous
       build.network.attach.restore();
@@ -357,11 +413,11 @@ lab.experiment('build.js unit test', function () {
           cleanWeaveEnv();
           done();
       });
-      build.handleNetworkAttach({ stream: testString });
+      build.handleNetworkAttach(testString);
     });
   });
 
-  lab.describe('handleNetworkAttach', function() {
+  lab.describe('postNetworkAttach', function() {
     lab.it('should kill container if error on attach', function(done) {
       var build = new Builder(defaultOps);
       var testContainerId = '132465789';
