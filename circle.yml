@@ -19,7 +19,4 @@ test:
         environment:
           CACHE_DIR: /tmp/cache
           LAYER_CACHE_DIR: /tmp/layer-cache
-          RUNNABLE_DOCKER: localhost:5555
-          RUNNABLE_SAURON_HOST: localhost:3100
-          RUNNABLE_NETWORK_DRIVER: signal
     - ./scripts/run-tests.sh
