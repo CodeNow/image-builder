@@ -63,12 +63,19 @@ lab.experiment('build.js unit test', function () {
   });
 
   lab.experiment('runDockerBuild', function () {
-    var testOps = { t: process.env.RUNNABLE_DOCKERTAG };
+    lab.before(function(done) {
+      process.env.RUNNABLE_DOCKERTAG = 'some-tag';
+      done();
+    });
+    lab.after(function(done) {
+      delete process.env.RUNNABLE_DOCKERTAG;
+      done();
+    });
     lab.it('should call buildImage with correct tag', function (done) {
       var build = new Builder(defaultOps);
       var testRes = 'some string';
 
-      sinon.stub(build, '_getTarStream').returns(defaultOps.dockerContext);
+      sinon.stub(build, '_getTarStream').returns(defaultOps.dirs.dockerContext);
       sinon.stub(build.docker, 'buildImage').yields(null, testRes);
       sinon.stub(build, '_handleBuild').yields();
 
@@ -76,7 +83,8 @@ lab.experiment('build.js unit test', function () {
         if (err) { return done(err); }
         expect(build._getTarStream.calledOnce).to.be.true();
         expect(build.docker.buildImage
-          .calledWith(defaultOps.dockerContext, testOps)).to.be.true();
+          .calledWith(defaultOps.dirs.dockerContext, 
+            { t: process.env.RUNNABLE_DOCKERTAG })).to.be.true();
         expect(build._handleBuild
           .calledWith(testRes)).to.be.true();
 
@@ -89,13 +97,14 @@ lab.experiment('build.js unit test', function () {
     lab.it('should callback error is buildImage errored', function (done) {
       var build = new Builder(defaultOps);
       var someErr = 'test err';
-      sinon.stub(build, '_getTarStream').returns(defaultOps.dockerContext);
+      sinon.stub(build, '_getTarStream').returns(defaultOps.dirs.dockerContext);
       sinon.stub(build.docker, 'buildImage').yields(someErr);
 
       build.runDockerBuild(function(err) {
         expect(build._getTarStream.calledOnce).to.be.true();
         expect(build.docker.buildImage
-          .calledWith(defaultOps.dockerContext, testOps)).to.be.true();
+          .calledWith(defaultOps.dirs.dockerContext, 
+            { t: process.env.RUNNABLE_DOCKERTAG })).to.be.true();
 
         build._getTarStream.restore();
         build.docker.buildImage.restore();
