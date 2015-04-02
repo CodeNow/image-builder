@@ -5,7 +5,6 @@ var lab = exports.lab = Lab.script();
 var expect = require('code').expect;
 var sinon = require('sinon');
 
-var tar = require('tar-fs');
 var events = require('events');
 var fs = require('fs');
 var Builder = require('../../lib/steps/build.js');
