@@ -64,91 +64,41 @@ lab.experiment('build.js unit test', function () {
   });
 
   lab.experiment('runDockerBuild', function () {
-    lab.it('should run tar and build', function (done) {
-      var build = new Builder(defaultOps);
-      var error = 'some error';
-      sinon.stub(build, 'tarContext').yields(error);
-
-      build.runDockerBuild(function (err) {
-        if (err === error) { return done(); }
-        done(new Error('should have errored'));
-      });
-    });
-    lab.it('should run tar and build', function (done) {
-      var build = new Builder(defaultOps);
-      sinon.stub(build, 'tarContext').yields();
-      sinon.stub(build, 'startImageBuild').yields();
-
-      build.runDockerBuild(function (err) {
-        if (err) { return done(err); }
-        expect(build.tarContext.calledOnce).to.equal(true);
-        expect(build.startImageBuild.calledOnce).to.equal(true);
-        build.tarContext.restore();
-        build.startImageBuild.restore();
-        done();
-      });
-    });
-  });
-
-  lab.experiment('tarContext', function () {
-    lab.it('should set tarPath and return on finish', function (done) {
-      var finishEmitter = new events.EventEmitter();
-      sinon.stub(fs , 'createWriteStream');
-      sinon.stub(tar , 'pack').returns({
-          pipe:  function () {
-            return finishEmitter;
-          }
-        });
-      var build = new Builder(defaultOps);
-      build.tarContext(function (err) {
-        if (err) { return done(err); }
-        expect(
-          fs.createWriteStream
-            .withArgs(defaultOps.dirs.dockerContext+'.tar').calledOnce)
-          .to.equal(true);
-        expect(build.tarPath).to.equal(defaultOps.dirs.dockerContext+'.tar');
-        tar.pack.restore();
-        fs.createWriteStream.restore();
-        done();
-      });
-      finishEmitter.emit('finish');
-    });
-  });
-
-  lab.experiment('startImageBuild', function () {
+    var testOps = { t: process.env.RUNNABLE_DOCKERTAG };
     lab.it('should call buildImage with correct tag', function (done) {
       var build = new Builder(defaultOps);
-      build.tarPath = '/test/path';
+      var testRes = 'some string';
 
-      sinon.stub(build.docker, 'buildImage',
-        function (tarPath, opts, cb) {
-          expect(tarPath).to.equal(build.tarPath);
-          expect(opts).to.contain({ t: process.env.RUNNABLE_DOCKERTAG });
-          cb();
-        });
+      sinon.stub(build, '_getTarStream').returns(defaultOps.dockerContext);
+      sinon.stub(build.docker, 'buildImage').yields(null, testRes);
+      sinon.stub(build, '_handleBuild').yields();
 
-      sinon.stub(build, 'handleBuild').yields();
-
-      build.startImageBuild(function(err) {
+      build.runDockerBuild(function(err) {
         if (err) { return done(err); }
+        expect(build._getTarStream.calledOnce).to.be.true();
+        expect(build.docker.buildImage
+          .calledWith(defaultOps.dockerContext, testOps)).to.be.true();
+        expect(build._handleBuild
+          .calledWith(testRes)).to.be.true();
+
+        build._getTarStream.restore();
         build.docker.buildImage.restore();
-        build.handleBuild.restore();
+        build._handleBuild.restore();
         done();
       });
     });
-
     lab.it('should callback error is buildImage errored', function (done) {
       var build = new Builder(defaultOps);
-      build.tarPath = '/test/path';
+      var someErr = 'test err';
+      sinon.stub(build, '_getTarStream').returns(defaultOps.dockerContext);
+      sinon.stub(build.docker, 'buildImage').yields(someErr);
 
-      sinon.stub(build.docker, 'buildImage',
-        function (tarPath, opts, cb) {
-          expect(tarPath).to.equal(build.tarPath);
-          expect(opts).to.contain({ t: process.env.RUNNABLE_DOCKERTAG });
-          cb('some error');
-        });
+      build.runDockerBuild(function(err) {
+        expect(build._getTarStream.calledOnce).to.be.true();
+        expect(build.docker.buildImage
+          .calledWith(defaultOps.dockerContext, testOps)).to.be.true();
 
-      build.startImageBuild(function(err) {
+        build._getTarStream.restore();
         build.docker.buildImage.restore();
         if (err) {
           return done();
@@ -158,17 +108,28 @@ lab.experiment('build.js unit test', function () {
     });
   });
 
-  lab.experiment('handleBuild', function () {
-    lab.it('should call handleBuildData on data emit', function (done) {
+  lab.experiment('_getTarStream', function () {
+    lab.it('should create stream of current dir', function (done) {
+      var ops = JSON.parse(JSON.stringify(defaultOps));
+      ops.dirs.dockerContext = __dirname;
+      var build = new Builder(ops);
+      var tarS = build._getTarStream();
+      expect(tarS.pipe).to.exist();
+      done();
+    });
+  });
+
+  lab.experiment('_handleBuild', function () {
+    lab.it('should call _handleBuildData on data emit', function (done) {
       var build = new Builder(defaultOps);
-      sinon.stub(build, 'handleBuildData', function () {
-        build.handleBuildData.restore();
+      sinon.stub(build, '_handleBuildData', function () {
+        build._handleBuildData.restore();
         done();
       });
 
       var dataEmitter = new events.EventEmitter();
 
-      build.handleBuild(dataEmitter, function () {});
+      build._handleBuild(dataEmitter, function () {});
       dataEmitter.emit('data');
     });
 
@@ -176,7 +137,7 @@ lab.experiment('build.js unit test', function () {
       var build = new Builder(defaultOps);
       var dataEmitter = new events.EventEmitter();
 
-      build.handleBuild(dataEmitter, done);
+      build._handleBuild(dataEmitter, done);
       dataEmitter.emit('end');
     });
 
@@ -184,7 +145,7 @@ lab.experiment('build.js unit test', function () {
       var build = new Builder(defaultOps);
       var dataEmitter = new events.EventEmitter();
       var error = 'some error';
-      build.handleBuild(dataEmitter, function (err) {
+      build._handleBuild(dataEmitter, function (err) {
         if (err === error) { return done(); }
         done(new Error('should have errored'));
       });
@@ -196,7 +157,7 @@ lab.experiment('build.js unit test', function () {
       build.buildErr = 'some type of err';
       var dataEmitter = new events.EventEmitter();
 
-      build.handleBuild(dataEmitter, function(err) {
+      build._handleBuild(dataEmitter, function(err) {
         expect(err).to.equal(build.buildErr);
         done();
       });
@@ -204,7 +165,7 @@ lab.experiment('build.js unit test', function () {
     });
   });
 
-  lab.experiment('handleBuildData', function () {
+  lab.experiment('_handleBuildData', function () {
     lab.it('should set buildErr on error', function (done) {
       var stubFs = sinon.stub(fs , 'appendFileSync');
       var testErr = 'some error';
@@ -222,7 +183,7 @@ lab.experiment('build.js unit test', function () {
         }
       };
       var build = new Builder(ops);
-      build.handleBuildData(JSON.stringify({error: testErr}));
+      build._handleBuildData(JSON.stringify({error: testErr}));
       expect(build.buildErr).to.equal(testErr);
       expect(
         stubFs.withArgs(ops.logs.dockerBuild, testErr).calledOnce)
@@ -255,7 +216,7 @@ lab.experiment('build.js unit test', function () {
 
       var build = new Builder(ops);
 
-      build.handleBuildData(JSON.stringify({stream: testString}));
+      build._handleBuildData(JSON.stringify({stream: testString}));
 
       expect(build.needAttach).to.equal(true);
       expect(
@@ -286,7 +247,7 @@ lab.experiment('build.js unit test', function () {
       };
 
       var build = new Builder(ops);
-      build.handleBuildData(JSON.stringify({stream: testString}));
+      build._handleBuildData(JSON.stringify({stream: testString}));
       expect(build.needAttach).to.not.exist();
       expect(
         stubFs.withArgs(ops.logs.dockerBuild, testString).calledOnce)
@@ -314,7 +275,7 @@ lab.experiment('build.js unit test', function () {
       };
 
       var build = new Builder(ops);
-      build.handleBuildData(JSON.stringify({}));
+      build._handleBuildData(JSON.stringify({}));
       expect(build.needAttach).to.not.exist();
       expect(
         stubFs.withArgs(ops.logs.dockerBuild, '').calledOnce)
@@ -342,7 +303,7 @@ lab.experiment('build.js unit test', function () {
       };
 
       var build = new Builder(ops);
-      build.handleBuildData(JSON.stringify({other: 'key'}));
+      build._handleBuildData(JSON.stringify({other: 'key'}));
       expect(build.needAttach).to.not.exist();
       expect(
         stubFs.withArgs(ops.logs.dockerBuild, '').calledOnce)
@@ -372,10 +333,10 @@ lab.experiment('build.js unit test', function () {
       var build = new Builder(ops);
       build.needAttach = true;
       var stubNetworkAttach= sinon
-        .stub(build , 'handleNetworkAttach', function (data) {
+        .stub(build , '_handleNetworkAttach', function (data) {
           expect(data).to.equal(testString);
         });
-      build.handleBuildData(JSON.stringify({stream: testString}));
+      build._handleBuildData(JSON.stringify({stream: testString}));
       expect(build.needAttach).to.equal(false);
       expect(
         stubFs.withArgs(ops.logs.dockerBuild, testString).calledOnce)
@@ -387,12 +348,12 @@ lab.experiment('build.js unit test', function () {
     });
   });
 
-  lab.describe('handleNetworkAttach', function() {
+  lab.describe('_handleNetworkAttach', function() {
     lab.it('should ignore line if not running in', function(done) {
       setupWeaveEnv();
       var build = new Builder(defaultOps);
       sinon.stub(build.network, 'attach');
-      build.handleNetworkAttach('test string');
+      build._handleNetworkAttach('test string');
       expect(build.network.attach.called).to.equal(false);
       // this only works because it's synchronous
       build.network.attach.restore();
@@ -413,11 +374,11 @@ lab.experiment('build.js unit test', function () {
           cleanWeaveEnv();
           done();
       });
-      build.handleNetworkAttach(testString);
+      build._handleNetworkAttach(testString);
     });
   });
 
-  lab.describe('postNetworkAttach', function() {
+  lab.describe('_postNetworkAttach', function() {
     lab.it('should kill container if error on attach', function(done) {
       var build = new Builder(defaultOps);
       var testContainerId = '132465789';
@@ -439,7 +400,7 @@ lab.experiment('build.js unit test', function () {
           done();
       });
 
-      build.postNetworkAttach(testContainerId)('some error');
+      build._postNetworkAttach(testContainerId)('some error');
     });
 
     lab.it('should do nothing if error', function(done) {
@@ -451,7 +412,7 @@ lab.experiment('build.js unit test', function () {
         throw new Error('should have been called');
       });
 
-      build.postNetworkAttach(testContainerId)(null);
+      build._postNetworkAttach(testContainerId)(null);
       // this again only works because it's syncronous
       build.docker.getContainer.restore();
       done();
