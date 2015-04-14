@@ -8,8 +8,6 @@ var steps = require('./lib/steps');
 async.series([
     steps.checkForRequiredEnvVars,
     steps.makeWorkingFolders,
-    steps.downloadDeployKeys,
-    steps.chmodAllKeys,
     steps.downloadBuildFiles,
     steps.getRepositories,
     steps.parseDockerfile,
