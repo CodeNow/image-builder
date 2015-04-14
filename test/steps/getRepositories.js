@@ -58,7 +58,8 @@ lab.experiment('getRepositories', function () {
             .to.be.true();
           expect(childProcess.exec.calledWithMatch(/git checkout .+/))
             .to.be.true();
-          expect(childProcess.exec.calledWithMatch(/git remote set-url origin .+/))
+          expect(childProcess.exec
+            .calledWithMatch(/git remote set-url origin .+/))
             .to.be.true();
           expect(childProcess.exec.callCount).to.equal(5);
           childProcess.exec.restore();
