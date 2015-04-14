@@ -7,7 +7,7 @@ echo "Running Tests:"
 
 num_tests=$(ls scripts/test-circle-* | wc -l)
 for i in $(seq 1 $num_tests); do
-  docker rm $(docker ps -aq) > /dev/null 2>&1
+  docker rm $(docker ps -aq) &> /dev/null
   if [ $i -lt 10 ]; then
     i="0"$i
   fi
