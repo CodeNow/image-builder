@@ -5,11 +5,7 @@ var lab = exports.lab = Lab.script();
 var expect = require('code').expect;
 
 var childProcess = require('child_process');
-var path = require('path');
-var fs = require('fs');
 var sinon = require('sinon');
-
-var lockfile = require('lockfile');
 
 var cacheDir = process.env.CACHE_DIR;
 if (!cacheDir) {
@@ -35,7 +31,7 @@ lab.before(function (done) {
 
 lab.experiment('getRepositories', function () {
   var requiredEnvVars = {
-    RUNNABLE_REPO: 'git@github.com:bkendall/flaming-octo-nemesis',
+    RUNNABLE_REPO: 'http://token@github.com/bkendall/flaming-octo-nemesis',
     RUNNABLE_COMMITISH: '34a728c59e713b7fbf5b0d6ed3a8e4f4e2c695c5'
   };
   lab.beforeEach(function (done) {
@@ -62,9 +58,9 @@ lab.experiment('getRepositories', function () {
             .to.be.true();
           expect(childProcess.exec.calledWithMatch(/git checkout .+/))
             .to.be.true();
-          expect(childProcess.exec.calledWithMatch(/^git remote rm origin$/))
+          expect(childProcess.exec.calledWithMatch(/git remote set-url origin .+/))
             .to.be.true();
-          expect(childProcess.exec.callCount).to.equal(4);
+          expect(childProcess.exec.callCount).to.equal(5);
           childProcess.exec.restore();
           done();
         });
