@@ -29,8 +29,8 @@ docker run \
   test-image-builder
 
 echo "checking repo status"
-docker run --rm test-built-image test -d /fon || (echo "built image should have repo" && false)
-test $(docker run --rm test/test-built-image:sometag git rev-parse --abbrev-ref HEAD) = "master" || (echo "should have checked out given revision (master)" && false)
+docker run test-built-image test -d /fon || (echo "built image should have repo" && false)
+test $(docker run test/test-built-image:sometag git rev-parse --abbrev-ref HEAD) = "master" || (echo "should have checked out given revision (master)" && false)
 
 echo "looking for archiver and waiting"
 # the archiver should be running

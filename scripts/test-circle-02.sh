@@ -18,6 +18,6 @@ docker run \
   -e RUNNABLE_DOCKER_BUILDOPTIONS='' \
   test-image-builder
 
-docker run --rm test-built-image test -d /fon || (echo "built image should have repo" && false)
-test $(docker run --rm test-built-image git rev-parse HEAD) = "04d07787dd44b4f2167e26532e95471871a9b233"  || (echo "should have checked out given revision" && false)
+docker run test-built-image test -d /fon || (echo "built image should have repo" && false)
+test $(docker run test-built-image git rev-parse HEAD) = "04d07787dd44b4f2167e26532e95471871a9b233"  || (echo "should have checked out given revision" && false)
 echo "all tests passed"

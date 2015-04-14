@@ -18,6 +18,6 @@ docker run \
   -e RUNNABLE_DOCKER_BUILDOPTIONS='' \
   test-image-builder
 
-docker run --rm test-built-image test -d /fon || (echo "built image should have repo" && false)
-test $(docker run --rm test-built-image git remote -v | awk '/push/{print($2)}') = "https://github.com/bkendall/flaming-octo-nemesis" || (echo "remote should have been renamed" && false)
+docker run test-built-image test -d /fon || (echo "built image should have repo" && false)
+test $(docker run test-built-image git remote -v | awk '/push/{print($2)}') = "https://github.com/bkendall/flaming-octo-nemesis" || (echo "remote should have been renamed" && false)
 echo "all tests passed"
