@@ -39,7 +39,7 @@ lab.experiment('signal-client.js', function () {
       signal.attachHostToContainer(1, 1, { containerId: 123456 },
         function (err, res) {
           delete process.env.SAURON_FAIL;
-          if (err) { return done(err); }
+          expect(err).to.exist();
           expect(res.statusCode).to.equal(500);
           done();
         });
