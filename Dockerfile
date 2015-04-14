@@ -8,6 +8,11 @@ RUN apt-get update && \
     apt-get install -y lxc-docker-1.4.1 && \
     rm -rf /var/lib/apt/lists/*
 
+RUN add-apt-repository ppa:git-core/ppa && \
+    apt-get update && \
+    apt-get install -y git && \
+    rm -rf /var/lib/apt/lists/*
+
 RUN mkdir $HOME/.ssh
 RUN ssh-keyscan -H -p 22 github.com >> $HOME/.ssh/known_hosts
 
