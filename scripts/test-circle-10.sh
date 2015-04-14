@@ -23,9 +23,7 @@ build () {
     -e RUNNABLE_FILES_BUCKET='runnable.image-builder' \
     -e RUNNABLE_PREFIX='' \
     -e RUNNABLE_FILES='{ "Dockerfile": "yG0y_iIRYKQ6Lgk4VUJ2TIoamZaoDRdx" }' \
-    -e RUNNABLE_KEYS_BUCKET='runnable.image-builder' \
-    -e RUNNABLE_DEPLOYKEY='flaming-octo-nemesis.key' \
-    -e RUNNABLE_REPO='git@github.com:bkendall/flaming-octo-nemesis' \
+    -e RUNNABLE_REPO='https://d5efaee357114fbd442bfe088af831619b4cb0c6@github.com/bkendall/flaming-octo-nemesis' \
     -e RUNNABLE_COMMITISH='master' \
     -e RUNNABLE_DOCKER="tcp://$(cat DOCKER_IP):5354" \
     -e RUNNABLE_DOCKERTAG='test/test-built-image:sometag' \
@@ -41,13 +39,6 @@ build () {
 checks () {
   should_have_archiver=1
   should_have_archiver=$1
-  echo "checking repo status"
-  # it should not be locked
-  test ! -d ./test-"$test_num"/"$full_repo".lock || (echo "lock should not exist" && false)
-  # the repo should exist
-  test -e ./test-"$test_num"/"$full_repo" || (echo "repo should exist" && false)
-  # and the repo should exist
-  test -f ./test-"$test_num"/"$full_repo"/README.md || (echo "repo should be cloned" && false)
 
   echo "looking for archiver and waiting"
   # the archiver should be running

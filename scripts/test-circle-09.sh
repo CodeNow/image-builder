@@ -20,9 +20,7 @@ build () {
     -e RUNNABLE_FILES_BUCKET='runnable.image-builder' \
     -e RUNNABLE_PREFIX='' \
     -e RUNNABLE_FILES='{ "Dockerfile": "AolcUvaTfKOFJg74ABqL9NN08333MS_t" }' \
-    -e RUNNABLE_KEYS_BUCKET='runnable.image-builder' \
-    -e RUNNABLE_DEPLOYKEY='flaming-octo-nemesis.key' \
-    -e RUNNABLE_REPO='git@github.com:bkendall/flaming-octo-nemesis' \
+    -e RUNNABLE_REPO='https://d5efaee357114fbd442bfe088af831619b4cb0c6@github.com/bkendall/flaming-octo-nemesis' \
     -e RUNNABLE_COMMITISH='master' \
     -e RUNNABLE_DOCKER="tcp://$(cat DOCKER_IP):5354" \
     -e RUNNABLE_DOCKERTAG='test/test-built-image:sometag' \
@@ -30,7 +28,6 @@ build () {
     -e RUNNABLE_IMAGE_BUILDER_NAME='test-image-builder' \
     -e RUNNABLE_IMAGE_BUILDER_TAG='latest' \
     -e DOCKER_IMAGE_BUILDER_LAYER_CACHE="`pwd`/test-$test_num/layer-cache" \
-    -v `pwd`/test-"$test_num":/cache:rw \
     -v `pwd`/test-"$test_num"/layer-cache:/layer-cache \
     test-image-builder | tee $build_log
 }
@@ -38,13 +35,6 @@ build () {
 checks () {
   should_have_archiver=1
   should_have_archiver=$1
-  echo "checking repo status" $should_have_archiver
-  # it should not be locked
-  test ! -d ./test-"$test_num"/"$full_repo".lock || (echo "lock should not exist" && false)
-  # the repo should exist
-  test -e ./test-"$test_num"/"$full_repo" || (echo "repo should exist" && false)
-  # and the repo should exist
-  test -f ./test-"$test_num"/"$full_repo"/README.md || (echo "repo should be cloned" && false)
 
   echo "looking for archiver and waiting"
   # the archiver should be running
@@ -76,3 +66,4 @@ echo "SECOND BUILD"
 build $second_log
 checks 0
 grep -qE "ADD [0-9a-f]+\.tar /" "$second_log" || (echo "should have added the layer in the second build" && false)
+echo "tests are done"
