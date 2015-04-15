@@ -27,18 +27,16 @@ Building an image with this image is a simple as using `docker run` and setting 
 ```
 docker run \
   -e RUNNABLE_AWS_ACCESS_KEY='AWS-ACCESS-KEY' \
-  -e RUNNABLE_AWS_SECRET_KEY='AWS-SECRET-KEY'  \
-  -e RUNNABLE_FILES_BUCKET='aws.bucket.name'  \
+  -e RUNNABLE_AWS_SECRET_KEY='AWS-SECRET-KEY' \
+  -e RUNNABLE_FILES_BUCKET='aws.bucket.name' \
   -e RUNNABLE_PREFIX='source/' \
-  -e RUNNABLE_FILES='{ "source/Dockerfile": "Po.EGeNr9HirlSJVMSxpf1gaWa5KruPa" }'  \
-  -e RUNNABLE_KEYS_BUCKET='aws.keys.bucket.name'  \
-  -e RUNNABLE_DEPLOYKEY='path/to/a/id_rsa'  \
-  -e RUNNABLE_REPO='git@github.com:visionmedia/express'  \
-  -e RUNNABLE_COMMITISH='master'  \
+  -e RUNNABLE_FILES='{ "source/Dockerfile": "Po.EGeNr9HirlSJVMSxpf1gaWa5KruPa" }' \
+  -e RUNNABLE_REPO='git@github.com:visionmedia/express' \
+  -e RUNNABLE_COMMITISH='master' \
   -e RUNNABLE_DOCKER='tcp://192.168.59.103:2375' \
   -e RUNNABLE_DOCKERTAG='docker-tag' \
   -e RUNNABLE_DOCKER_BUILDOPTIONS='' \
-  -v /host/path/to/cache:/cache:rw  \
+  -v /host/path/to/layer-cache:/layer-cache \
   runnable/image-builder
 ```
 
@@ -47,30 +45,28 @@ docker run \
 - `RUNNABLE_FILES_BUCKET`: bucket where the Dockerfile/source files are stored
 - `RUNNABLE_PREFIX`: prefix of the source path of the files in S3
 - `RUNNABLE_FILES`: a string representing a JSON object with S3 `Key`: `VersionId`. This MUST include a Dockerfile, and optionally can contain other files for the source directory
-- `RUNNABLE_KEYS_BUCKET`: for a private repository, this is the bucket where deploy keys are stored
 - `RUNNABLE_REPO`: repository to checkout using `git`. Must be in the SSH format, w/ no `.git` at the end
 - `RUNNABLE_COMMITISH`: something to checkout in the repository
 - `RUNNABLE_DOCKER`: Docker connection information, best formatted `tcp://ipaddress:port`
 - `RUNNABLE_DOCKERTAG`: Tag for the built Docker image
 - `RUNNABLE_DOCKER_BUILDOPTIONS`: other Docker build options
--  `-v /host/path/to/cache:/cache:rw`: cache for github repos
+- `-v /host/path/to/layer-cache:/layer-cache`: folder for the Runnable layer-cache
 
 ## Multiple Repositories
 
-This supports checking out multiple repositories, with multiple commitishes, and deploy keys. Set the variable using `;` as the separator and it will download all of them.
+This supports checking out multiple repositories, with multiple commitishes. Set the variable using `;` as the separator and it will download all of them.
 
 The following variables support multiple values:
 
-- `RUNNABLE_DEPLOYKEY`
 - `RUNNABLE_REPO`
 - `RUNNABLE_COMMITISH`
 
-NOTE: `RUNNABLE_REPO` and `RUNNABLE_COMMITISH` need to be a one-to-one correspondence for it to work correctly (does NOT assume `master` or any other value).
+**NOTE**: `RUNNABLE_REPO` and `RUNNABLE_COMMITISH` need to be a one-to-one correspondence for it to work correctly (does NOT assume `master` or any other value).
 
-### Development
+## Deprecated
 
-This repo does not have enough tests to be reliably pull requested without manual testing.
-{TODO: outline manually tests that should be verified before a pull request}
+- `RUNNABLE_KEYS_BUCKET`
+- `RUNNABLE_DEPLOYKEY`
 
 ## Debugging the Builder
 
