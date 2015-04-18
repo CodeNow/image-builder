@@ -1,4 +1,4 @@
-FROM bkendall/nodeanddocker:n0.10-d1.4.1
+FROM bkendall/nodeanddocker:n0.10-d1.6.2
 
 RUN mkdir $HOME/.ssh
 RUN ssh-keyscan -H -p 22 github.com >> $HOME/.ssh/known_hosts
