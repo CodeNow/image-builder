@@ -7,6 +7,7 @@
     "test": "test"
   },
   "dependencies": {
+    "101": "^0.16.1",
     "async": "0.9.0",
     "aws-sdk": "2.0.17",
     "callback-count": "^0.1.0",

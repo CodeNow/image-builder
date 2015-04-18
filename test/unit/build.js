@@ -83,7 +83,7 @@ lab.experiment('build.js unit test', function () {
         if (err) { return done(err); }
         expect(build._getTarStream.calledOnce).to.be.true();
         expect(build.docker.buildImage
-          .calledWith(defaultOps.dirs.dockerContext, 
+          .calledWith(defaultOps.dirs.dockerContext,
             { t: process.env.RUNNABLE_DOCKERTAG })).to.be.true();
         expect(build._handleBuild
           .calledWith(testRes)).to.be.true();
@@ -91,6 +91,37 @@ lab.experiment('build.js unit test', function () {
         build._getTarStream.restore();
         build.docker.buildImage.restore();
         build._handleBuild.restore();
+        done();
+      });
+    });
+    lab.it('should call buildImage with extra flags', function (done) {
+      process.env.RUNNABLE_BUILD_FLAGS = JSON.stringify({
+        testFlag: 'dockerTestArgs',
+        cpus: 100,
+      });
+      var build = new Builder(defaultOps);
+      var testRes = 'some string';
+
+      sinon.stub(build, '_getTarStream').returns(defaultOps.dirs.dockerContext);
+      sinon.stub(build.docker, 'buildImage').yields(null, testRes);
+      sinon.stub(build, '_handleBuild').yields();
+
+      build.runDockerBuild(function(err) {
+        if (err) { return done(err); }
+        expect(build._getTarStream.calledOnce).to.be.true();
+        expect(build.docker.buildImage
+          .calledWith(defaultOps.dirs.dockerContext, {
+            t: process.env.RUNNABLE_DOCKERTAG,
+            cpus: 100,
+            testFlag: 'dockerTestArgs'
+          })).to.be.true();
+        expect(build._handleBuild
+          .calledWith(testRes)).to.be.true();
+
+        build._getTarStream.restore();
+        build.docker.buildImage.restore();
+        build._handleBuild.restore();
+        delete process.env.RUNNABLE_BUILD_FLAGS;
         done();
       });
     });
@@ -103,7 +134,7 @@ lab.experiment('build.js unit test', function () {
       build.runDockerBuild(function(err) {
         expect(build._getTarStream.calledOnce).to.be.true();
         expect(build.docker.buildImage
-          .calledWith(defaultOps.dirs.dockerContext, 
+          .calledWith(defaultOps.dirs.dockerContext,
             { t: process.env.RUNNABLE_DOCKERTAG })).to.be.true();
 
         build._getTarStream.restore();
