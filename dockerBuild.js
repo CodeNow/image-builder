@@ -18,11 +18,13 @@ async.series([
     steps.copyLayer
   ],
   function (err) {
+    var msgPrefix = '[Runnable (image-builder)]';
     if (err) {
+      var message = err.message ? err.message : 'unknown';
       console.error(
-        colors.red.bold('Hit an unexpected error: %s'), err.message);
+        colors.red.bold(msgPrefix + ' Hit an unexpected error: %s'), message);
       process.exit(1);
     }
-    console.log('Build completed successfully!'.bold.green);
+    console.log(msgPrefix + ' Build completed successfully!'.bold.green);
   }
 );
