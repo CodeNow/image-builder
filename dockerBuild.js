@@ -12,6 +12,7 @@ async.series([
     steps.chmodAllKeys,
     steps.downloadBuildFiles,
     steps.getRepositories,
+    steps.applyRepositoryFilters,
     steps.parseDockerfile,
     steps.runDockerBuild,
     steps.parseBuildLogAndHistory,
