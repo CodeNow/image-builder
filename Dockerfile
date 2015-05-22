@@ -1,4 +1,4 @@
-FROM dockerfile/nodejs
+FROM node:0.10
 
 RUN apt-get update && \
     apt-get install -y apt-transport-https && \
