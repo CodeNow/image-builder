@@ -22,7 +22,7 @@ build () {
     -e RUNNABLE_AWS_SECRET_KEY="$AWS_SECRET_KEY" \
     -e RUNNABLE_FILES_BUCKET='runnable.image-builder' \
     -e RUNNABLE_PREFIX='' \
-    -e RUNNABLE_FILES='{ "Dockerfile": "yG0y_iIRYKQ6Lgk4VUJ2TIoamZaoDRdx" }' \
+    -e RUNNABLE_FILES='{ "Dockerfile": "K4WtbMDUSlPMdg7XvMSKoRYLmyPzP8mw" }' \
     -e RUNNABLE_KEYS_BUCKET='runnable.image-builder' \
     -e RUNNABLE_DEPLOYKEY='flaming-octo-nemesis.key' \
     -e RUNNABLE_REPO='git@github.com:bkendall/flaming-octo-nemesis' \

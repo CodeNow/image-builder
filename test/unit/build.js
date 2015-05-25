@@ -231,7 +231,7 @@ lab.experiment('build.js unit test', function () {
       done();
     });
 
-    lab.it('should set waitForWeave if line match', function (done) {
+    lab.it('should set waitForWeave if RUN line match', function (done) {
       var stubFs = sinon.stub(fs , 'appendFileSync');
       setupWeaveEnv();
 
@@ -267,7 +267,43 @@ lab.experiment('build.js unit test', function () {
       done();
     });
 
-    lab.it('should just print it not special line', function (done) {
+    lab.it('should not waitForWeave if CMD line match', function (done) {
+      var stubFs = sinon.stub(fs , 'appendFileSync');
+      setupWeaveEnv();
+
+      var testString = 'CMD ' +
+        process.env.RUNNABLE_WAIT_FOR_WEAVE +
+        ' sleep 100';
+
+      var ops = {
+        dirs: {
+          dockerContext: '/test/context'
+        },
+        logs: {
+          dockerBuild: '/test/log'
+        },
+        saveToLogs: function () {
+          return function(err, stdout) {
+            expect(stdout).to.equal(testString);
+          };
+        }
+      };
+
+      var build = new Builder(ops);
+
+      build._handleBuildData(JSON.stringify({stream: testString}));
+
+      expect(build.needAttach).to.be.undefined();
+      expect(
+        stubFs.withArgs(ops.logs.dockerBuild, testString).calledOnce)
+        .to.equal(true);
+
+      cleanWeaveEnv();
+      stubFs.restore();
+      done();
+    });
+
+    lab.it('should just print if not special line', function (done) {
       var stubFs = sinon.stub(fs , 'appendFileSync');
       var testString = '-----> using cache';
 
