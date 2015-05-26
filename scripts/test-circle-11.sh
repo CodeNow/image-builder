@@ -37,7 +37,7 @@ docker run \
 # if grep does not see a match, it will return a non-zero code
 grep -q "waitForWeave" $build_log | wc -l
 test "$?" = "0" || (echo "waitForWeave should be added" && false)
-COUNT=`grep -q "waitForWeave" $build_log | wc -l`
+COUNT=`grep "waitForWeave" $build_log | wc -l`
 test "$COUNT" = "2" || (echo "waitForWeave should be added 2 times" && false)
 
 ########################################################
