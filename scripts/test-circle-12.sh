@@ -12,7 +12,7 @@ docker run \
   -e RUNNABLE_AWS_SECRET_KEY="$AWS_SECRET_KEY" \
   -e RUNNABLE_FILES_BUCKET='runnable.image-builder' \
   -e RUNNABLE_PREFIX='' \
-  -e RUNNABLE_FILES='{ "Dockerfile": "zTpfIp4lnzcEcd24mpiAPjqIRbru7VE8" }' \
+  -e RUNNABLE_FILES='{ "Dockerfile": "lsPMUA7EcT2CqOEKYhlcpUaUmLLU_Gq." }' \
   -e RUNNABLE_KEYS_BUCKET='runnable.image-builder' \
   -e RUNNABLE_DEPLOYKEY='flaming-octo-nemesis.key' \
   -e RUNNABLE_REPO='git@github.com:bkendall/flaming-octo-nemesis' \
@@ -45,7 +45,7 @@ docker run \
   -e RUNNABLE_AWS_SECRET_KEY="$AWS_SECRET_KEY" \
   -e RUNNABLE_FILES_BUCKET='runnable.image-builder' \
   -e RUNNABLE_PREFIX='' \
-  -e RUNNABLE_FILES='{ "Dockerfile": "zTpfIp4lnzcEcd24mpiAPjqIRbru7VE8" }' \
+  -e RUNNABLE_FILES='{ "Dockerfile": "lsPMUA7EcT2CqOEKYhlcpUaUmLLU_Gq." }' \
   -e RUNNABLE_KEYS_BUCKET='runnable.image-builder' \
   -e RUNNABLE_DEPLOYKEY='flaming-octo-nemesis.key' \
   -e RUNNABLE_REPO='git@github.com:bkendall/flaming-octo-nemesis' \
