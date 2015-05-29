@@ -12,7 +12,7 @@ docker run \
   -e RUNNABLE_AWS_SECRET_KEY="$AWS_SECRET_KEY" \
   -e RUNNABLE_FILES_BUCKET='runnable.image-builder' \
   -e RUNNABLE_PREFIX='' \
-  -e RUNNABLE_FILES='{ "Dockerfile": "AolcUvaTfKOFJg74ABqL9NN08333MS_t" }' \
+  -e RUNNABLE_FILES='{ "Dockerfile": "lsPMUA7EcT2CqOEKYhlcpUaUmLLU_Gq." }' \
   -e RUNNABLE_KEYS_BUCKET='runnable.image-builder' \
   -e RUNNABLE_DEPLOYKEY='flaming-octo-nemesis.key' \
   -e RUNNABLE_REPO='git@github.com:bkendall/flaming-octo-nemesis' \
@@ -23,7 +23,7 @@ docker run \
   -e RUNNABLE_IMAGE_BUILDER_NAME='test-image-builder' \
   -e RUNNABLE_IMAGE_BUILDER_TAG='latest' \
   -e DOCKER_IMAGE_BUILDER_LAYER_CACHE="`pwd`/test-$test_num/layer-cache" \
-  -e RUNNABLE_WAIT_FOR_WEAVE='trap "echo | nc localhost 5356" INT; nc -l 5356 & wait; ' \
+  -e RUNNABLE_WAIT_FOR_WEAVE='trap "echo | nc -q 0 localhost 5356" INT; nc -l -p 5356 & wait; ' \
   -e RUNNABLE_NETWORK_IP='10.0.0.0' \
   -e RUNNABLE_HOST_IP='10.0.0.1' \
   -e RUNNABLE_SAURON_HOST="$(cat DOCKER_IP):5355" \
@@ -45,7 +45,7 @@ docker run \
   -e RUNNABLE_AWS_SECRET_KEY="$AWS_SECRET_KEY" \
   -e RUNNABLE_FILES_BUCKET='runnable.image-builder' \
   -e RUNNABLE_PREFIX='' \
-  -e RUNNABLE_FILES='{ "Dockerfile": "AolcUvaTfKOFJg74ABqL9NN08333MS_t" }' \
+  -e RUNNABLE_FILES='{ "Dockerfile": "lsPMUA7EcT2CqOEKYhlcpUaUmLLU_Gq." }' \
   -e RUNNABLE_KEYS_BUCKET='runnable.image-builder' \
   -e RUNNABLE_DEPLOYKEY='flaming-octo-nemesis.key' \
   -e RUNNABLE_REPO='git@github.com:bkendall/flaming-octo-nemesis' \
