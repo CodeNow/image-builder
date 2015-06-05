@@ -20,14 +20,11 @@ async.series([
   function (err) {
     var msgPrefix = 'Runnable: ';
     if (err) {
-      var message;
-      if (err.customMessage) {
-        message = err.customMessage;
-      } else {
-        message = 'Hit an unexpected error: ' +
+      if (!err.noLog) {
+       var message = 'Hit an unexpected error: ' +
           err.message ? err.message : 'unknown';
+        console.error(colors.red.bold(msgPrefix + message));
       }
-      console.error(colors.red.bold(msgPrefix + message));
       process.exit(1);
     }
     console.log(

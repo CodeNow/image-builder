@@ -205,7 +205,7 @@ lab.experiment('build.js unit test', function () {
   });
 
   lab.experiment('_handleBuildData', function () {
-    lab.it('should set buildErr a valid error', function (done) {
+    lab.it('should set buildErr with noMessage', function (done) {
       var stubFs = sinon.stub(fs , 'appendFileSync');
       var testErr =
         'The command [/bin/sh -c fake] returned a non-zero code: 127';
@@ -224,36 +224,7 @@ lab.experiment('build.js unit test', function () {
       };
       var build = new Builder(ops);
       build._handleBuildData(JSON.stringify({error: testErr}));
-      expect(build.buildErr.customMessage)
-        .to.equal('previous line returned a non-zero code: 127');
-      expect(
-        stubFs.withArgs(ops.logs.dockerBuild, testErr).calledOnce)
-        .to.equal(true);
-      stubFs.restore();
-      done();
-    });
-
-    lab.it('should set buildErr a invalid error', function (done) {
-      var stubFs = sinon.stub(fs , 'appendFileSync');
-      var testErr =
-        'The command [/bin/sh -c fake] booo';
-      var ops = {
-        dirs: {
-          dockerContext: '/test/context'
-        },
-        logs: {
-          dockerBuild: '/test/log'
-        },
-        saveToLogs: function () {
-          return function(err, stdout, stderr) {
-            expect(stderr).to.equal(testErr);
-          };
-        }
-      };
-      var build = new Builder(ops);
-      build._handleBuildData(JSON.stringify({error: testErr}));
-      expect(build.buildErr.customMessage)
-        .to.equal('previous line returned an error');
+      expect(build.buildErr.noLog).be.true();
       expect(
         stubFs.withArgs(ops.logs.dockerBuild, testErr).calledOnce)
         .to.equal(true);
