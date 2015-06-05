@@ -20,15 +20,17 @@ async.series([
   function (err) {
     var msgPrefix = 'Runnable: ';
     if (err) {
+      var message;
       if (err.customMessage) {
-        console.error(colors.red.bold(msgPrefix + err.customMessage));
+        message = err.customMessage;
       } else {
-        var message = err.message ? err.message : 'unknown';
-        console.error(
-          colors.red.bold(msgPrefix + ' Hit an unexpected error: %s'), message);
+        message = 'Hit an unexpected error: ' +
+          err.message ? err.message : 'unknown';
       }
+      console.error(colors.red.bold(msgPrefix + message));
       process.exit(1);
     }
-    console.log(msgPrefix + ' Build completed successfully!'.bold.green);
+    console.log(
+      colors.green.bold(msgPrefix + ' Build completed successfully!'));
   }
 );
