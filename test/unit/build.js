@@ -343,6 +343,37 @@ lab.experiment('build.js unit test', function () {
         done();
     });
 
+    lab.it('should not print blacklisted line', function (done) {
+      var stubFs = sinon.stub(fs , 'appendFileSync');
+      sinon.spy(process.stdout, 'write');
+      var testString = 'Removing intermediate container';
+
+      var ops = {
+        dirs: {
+          dockerContext: '/test/context'
+        },
+        logs: {
+          dockerBuild: '/test/log'
+        },
+        saveToLogs: function () {
+          return function(err, stdout) {
+            expect(stdout).to.equal(testString);
+          };
+        }
+      };
+
+      var build = new Builder(ops);
+      build._handleBuildData(JSON.stringify({stream: testString}));
+      expect(build.needAttach).to.not.exist();
+      expect(
+        stubFs.withArgs(ops.logs.dockerBuild, testString).calledOnce)
+        .to.equal(true);
+      expect(process.stdout.write.notCalled).be.true();
+      process.stdout.write.restore();
+      stubFs.restore();
+      done();
+    });
+
     lab.it('should just print if not special line', function (done) {
       var stubFs = sinon.stub(fs , 'appendFileSync');
       var testString = '-----> using cache';
