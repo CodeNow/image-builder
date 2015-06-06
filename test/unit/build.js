@@ -205,9 +205,10 @@ lab.experiment('build.js unit test', function () {
   });
 
   lab.experiment('_handleBuildData', function () {
-    lab.it('should set buildErr on error', function (done) {
+    lab.it('should set buildErr with noMessage', function (done) {
       var stubFs = sinon.stub(fs , 'appendFileSync');
-      var testErr = 'some error';
+      var testErr =
+        'The command [/bin/sh -c fake] returned a non-zero code: 127';
       var ops = {
         dirs: {
           dockerContext: '/test/context'
@@ -223,7 +224,7 @@ lab.experiment('build.js unit test', function () {
       };
       var build = new Builder(ops);
       build._handleBuildData(JSON.stringify({error: testErr}));
-      expect(build.buildErr).to.equal(testErr);
+      expect(build.buildErr.noLog).be.true();
       expect(
         stubFs.withArgs(ops.logs.dockerBuild, testErr).calledOnce)
         .to.equal(true);
@@ -340,6 +341,37 @@ lab.experiment('build.js unit test', function () {
         cleanWeaveEnv();
         stubFs.restore();
         done();
+    });
+
+    lab.it('should not print blacklisted line', function (done) {
+      var stubFs = sinon.stub(fs , 'appendFileSync');
+      sinon.spy(process.stdout, 'write');
+      var testString = 'Removing intermediate container';
+
+      var ops = {
+        dirs: {
+          dockerContext: '/test/context'
+        },
+        logs: {
+          dockerBuild: '/test/log'
+        },
+        saveToLogs: function () {
+          return function(err, stdout) {
+            expect(stdout).to.equal(testString);
+          };
+        }
+      };
+
+      var build = new Builder(ops);
+      build._handleBuildData(JSON.stringify({stream: testString}));
+      expect(build.needAttach).to.not.exist();
+      expect(
+        stubFs.withArgs(ops.logs.dockerBuild, testString).calledOnce)
+        .to.equal(true);
+      expect(process.stdout.write.notCalled).be.true();
+      process.stdout.write.restore();
+      stubFs.restore();
+      done();
     });
 
     lab.it('should just print if not special line', function (done) {
