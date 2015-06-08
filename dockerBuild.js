@@ -28,6 +28,6 @@ async.series([
       process.exit(1);
     }
     console.log(
-      colors.green.bold(msgPrefix + ' Build completed successfully!'));
+      colors.green.bold(msgPrefix + 'Build completed successfully!'));
   }
 );
