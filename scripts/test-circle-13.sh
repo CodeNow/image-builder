@@ -32,6 +32,6 @@ test -e ./test-"$test_num"/"$full_repo" || (echo "repo should exist" && false)
 # and the repo should exist
 test -f ./test-"$test_num"/"$full_repo"/README.md || (echo "repo should be populated" && false)
 # should have replaced FON_USER in server.js
-docker run --rm test-built-image grep -q "process.env.USER" /fon/server.js || (echo "should have replaced FON_USER" && false)
+docker run test-built-image grep -q "process.env.USER" /fon/server.js || (echo "should have replaced FON_USER" && false)
 # should have printed that it was applying rules
 grep -q "Applying search and replace rules." $log_file || (echo "should have printed that it was applying rules" && false)
