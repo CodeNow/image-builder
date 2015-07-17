@@ -232,6 +232,37 @@ lab.experiment('build.js unit test', function () {
       done();
     });
 
+    lab.it('should set buildErr if parse error', function (done) {
+      var stubFs = sinon.stub(fs , 'appendFileSync');
+      var testErr = 'crash';
+      var ops = {
+        dirs: {
+          dockerContext: '/test/context'
+        },
+        logs: {
+          dockerBuild: '/test/log'
+        },
+        saveToLogs: function () {
+          return function(err, stdout, stderr) {
+            expect(stderr).to.deep.equal({
+              error: 'crash'
+            });
+          };
+        }
+      };
+      var build = new Builder(ops);
+      build._handleBuildData({error: testErr});
+      expect(build.buildErr.noLog).be.true();
+      expect(
+        stubFs.withArgs(ops.logs.dockerBuild, {
+          error: 'crash'
+        }).calledOnce)
+        .to.equal(true);
+      stubFs.restore();
+      done();
+    });
+
+
     lab.it('should set waitForWeave if RUN line match', function (done) {
       var stubFs = sinon.stub(fs , 'appendFileSync');
       setupWeaveEnv();
