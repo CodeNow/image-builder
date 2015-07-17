@@ -374,6 +374,34 @@ lab.experiment('build.js unit test', function () {
       done();
     });
 
+    lab.it('should just print if parse error', function (done) {
+      var stubFs = sinon.stub(fs , 'appendFileSync');
+      var testString = 'i failed parse';
+
+      var ops = {
+        dirs: {
+          dockerContext: '/test/context'
+        },
+        logs: {
+          dockerBuild: '/test/log'
+        },
+        saveToLogs: function () {
+          return function(err, stdout) {
+            expect(stdout).to.equal(testString);
+          };
+        }
+      };
+
+      var build = new Builder(ops);
+      build._handleBuildData(testString);
+      expect(build.needAttach).to.not.exist();
+      expect(
+        stubFs.withArgs(ops.logs.dockerBuild, testString).calledOnce)
+        .to.equal(true);
+      stubFs.restore();
+      done();
+    });
+
     lab.it('should just print if not special line', function (done) {
       var stubFs = sinon.stub(fs , 'appendFileSync');
       var testString = '-----> using cache';
@@ -403,7 +431,6 @@ lab.experiment('build.js unit test', function () {
     });
 
     lab.it('should just print if no stream in data', function (done) {
-      // delete process.env.RUNNABLE_WAIT_FOR_WEAVE;
       var stubFs = sinon.stub(fs , 'appendFileSync');
 
       var ops = {
@@ -431,7 +458,6 @@ lab.experiment('build.js unit test', function () {
     });
 
     lab.it('should just print nothing if other keys passed', function (done) {
-      // delete process.env.RUNNABLE_WAIT_FOR_WEAVE;
       var stubFs = sinon.stub(fs , 'appendFileSync');
 
       var ops = {
