@@ -16,7 +16,8 @@ async.series([
     steps.parseDockerfile,
     steps.runDockerBuild,
     steps.parseBuildLogAndHistory,
-    steps.copyLayer
+    steps.copyLayer,
+    steps.pushImage
   ],
   function (err) {
     var msgPrefix = 'Runnable: ';
