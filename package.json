@@ -14,7 +14,7 @@
     "colors": "^1.0.3",
     "concat-stream": "^1.4.7",
     "conire": "^1.0.3",
-    "dockerode": "^2.0.7",
+    "dockerode": "^2.2.1",
     "escape-regex-string": "^1.0.3",
     "fs-transform": "^3.2.4",
     "lockfile": "^1.0.0",
