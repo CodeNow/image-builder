@@ -4,6 +4,7 @@
 var colors = require('colors');
 var async = require('async');
 var steps = require('./lib/steps');
+var utils = require('./lib/utils');
 
 async.series([
     steps.checkForRequiredEnvVars,
@@ -25,11 +26,11 @@ async.series([
       if (!err.noLog) {
        var message = 'Hit an unexpected error: ' +
           err.message ? err.message : 'unknown';
-        console.error(colors.red.bold(msgPrefix + message));
+        utils.error(colors.red.bold(msgPrefix + message));
       }
       process.exit(1);
     }
-    console.log(
+    utils.log(
       colors.green.bold(msgPrefix + 'Build completed successfully!'));
   }
 );
