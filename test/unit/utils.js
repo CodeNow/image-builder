@@ -15,7 +15,7 @@ lab.experiment('utils', function () {
       var bar = 'else';
       utils.log(foo, bar);
       expect(console.log.calledOnce).to.be.true();
-      expect(console.log.calledWith(foo, bar)).to.be.true();
+      console.log.restore();
       done();
     });
     lab.it('logs on error', function (done) {
@@ -24,7 +24,18 @@ lab.experiment('utils', function () {
       var bar = 'else';
       utils.error(foo, bar);
       expect(console.error.calledOnce).to.be.true();
-      expect(console.error.calledWith(foo, bar)).to.be.true();
+      console.error.restore();
+      done();
+    });
+    lab.it('formats logs into an appropriate string', function (done) {
+      sinon.stub(console, 'log');
+      utils.log('a message');
+      expect(console.log.calledOnce).to.be.true();
+      expect(console.log.getCall(0).args[0]).to.equal(JSON.stringify({
+        type: 'log',
+        content: 'a message'
+      }));
+      console.log.restore();
       done();
     });
   });
