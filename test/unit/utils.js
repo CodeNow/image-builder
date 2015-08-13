@@ -38,5 +38,16 @@ lab.experiment('utils', function () {
       console.log.restore();
       done();
     });
+    lab.it('formats objects to strings for the content', function (done) {
+      sinon.stub(console, 'log');
+      utils.progress({ some: 'object' });
+      expect(console.log.calledOnce).to.be.true();
+      expect(console.log.getCall(0).args[0]).to.equal(JSON.stringify({
+        type: 'progress',
+        content: { some: 'object' }
+      }));
+      console.log.restore();
+      done();
+    });
   });
 });
