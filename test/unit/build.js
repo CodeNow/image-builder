@@ -4,10 +4,13 @@ var Lab = require('lab');
 var lab = exports.lab = Lab.script();
 var expect = require('code').expect;
 var sinon = require('sinon');
+var createCount = require('callback-count');
 
 var events = require('events');
+var stream = require('stream');
 var fs = require('fs');
 var Builder = require('../../lib/steps/build.js');
+var utils = require('../../lib/utils');
 
 var defaultOps = {
   dirs: {
@@ -33,6 +36,18 @@ function cleanWeaveEnv () {
 }
 
 lab.experiment('build.js unit test', function () {
+  lab.before(function (done) {
+    sinon.stub(utils, 'log');
+    sinon.stub(utils, 'progress');
+    sinon.stub(utils, 'error');
+    done();
+  });
+  lab.after(function (done) {
+    utils.log.restore();
+    utils.progress.restore();
+    utils.error.restore();
+    done();
+  });
 
   var saveEnvironmentVars = {
     'RUNNABLE_DOCKER': 'tcp://localhost:5555',
@@ -159,79 +174,61 @@ lab.experiment('build.js unit test', function () {
   });
 
   lab.experiment('_handleBuild', function () {
-    lab.it('should call _handleBuildData on data emit', function (done) {
-      var build = new Builder(defaultOps);
-      sinon.stub(build, '_handleBuildData', function () {
-        build._handleBuildData.restore();
-        done();
-      });
-
-      var dataEmitter = new events.EventEmitter();
-
-      build._handleBuild(dataEmitter, function () {});
-      dataEmitter.emit('data');
+    lab.beforeEach(function (done) {
+      ctx.builder = new Builder(defaultOps);
+      sinon.stub(ctx.builder, 'saveToLogs').returns(function () {});
+      done();
+    });
+    lab.afterEach(function (done) {
+      ctx.builder.saveToLogs.restore();
+      done();
     });
 
-    lab.it('should callback on end emit', function (done) {
-      var build = new Builder(defaultOps);
-      var dataEmitter = new events.EventEmitter();
+    lab.it('should handle data and end events', function (done) {
+      // setup
+      var dataStream = new stream.PassThrough();
+      var count = createCount(1, function (err) {
+        expect(ctx.builder._handleBuildData.calledOnce).to.be.true();
+        ctx.builder._handleBuildData.restore();
+        done(err);
+      });
 
-      build._handleBuild(dataEmitter, done);
-      dataEmitter.emit('end');
+      // things to watch (for data)
+      sinon.stub(ctx.builder, '_handleBuildData');
+
+      // start handling stuff (count.next here is the exit event)
+      ctx.builder._handleBuild(dataStream, count.next);
+
+      // trigger the things!
+      dataStream.write(JSON.stringify({ 'stream': 'RUN HELLO' }));
+      dataStream.end();
     });
 
     lab.it('should callback on error emit', function (done) {
-      var build = new Builder(defaultOps);
-      var dataEmitter = new events.EventEmitter();
-      var error = 'some error';
-      build._handleBuild(dataEmitter, function (err) {
-        if (err === error) { return done(); }
-        done(new Error('should have errored'));
-      });
-      dataEmitter.emit('error', error);
-    });
-
-    lab.it('should callback with error on end emit', function (done) {
-      var build = new Builder(defaultOps);
-      build.buildErr = 'some type of err';
-      var dataEmitter = new events.EventEmitter();
-
-      build._handleBuild(dataEmitter, function(err) {
-        expect(err).to.equal(build.buildErr);
+      // setup
+      var dataStream = new stream.PassThrough();
+      var count = function (err) {
+        expect(ctx.builder._handleBuildData.called).to.be.false();
+        expect(err.message).to.equal('some error');
+        ctx.builder._handleBuildData.restore();
+        ctx.builder.docker.modem.followProgress.restore();
         done();
-      });
-      dataEmitter.emit('end');
+      };
+
+      // things to watch (for data)
+      // var error = new Error('some error');
+      sinon.stub(ctx.builder, '_handleBuildData');
+      sinon.stub(ctx.builder.docker.modem, 'followProgress',
+        function (s, f, p) {
+          f(new Error('some error'));
+        });
+
+      // start handling stuff (count.next here is the exit event)
+      ctx.builder._handleBuild(dataStream, count);
     });
   });
 
   lab.experiment('_handleBuildData', function () {
-    lab.it('should set buildErr with noMessage', function (done) {
-      var stubFs = sinon.stub(fs , 'appendFileSync');
-      var testErr =
-        'The command [/bin/sh -c fake] returned a non-zero code: 127';
-      var ops = {
-        dirs: {
-          dockerContext: '/test/context'
-        },
-        logs: {
-          dockerBuild: '/test/log'
-        },
-        saveToLogs: function () {
-          return function(err, stdout, stderr) {
-            expect(stderr).to.equal(testErr);
-          };
-        }
-      };
-      var build = new Builder(ops);
-      build._handleBuildData(JSON.stringify({error: testErr}));
-      expect(build.buildErr.noLog).be.true();
-      expect(
-        stubFs.withArgs(ops.logs.dockerBuild, testErr).calledOnce)
-        .to.equal(true);
-      stubFs.restore();
-      done();
-    });
-
     lab.it('should set waitForWeave if RUN line match', function (done) {
       var stubFs = sinon.stub(fs , 'appendFileSync');
       setupWeaveEnv();
@@ -256,7 +253,7 @@ lab.experiment('build.js unit test', function () {
 
       var build = new Builder(ops);
 
-      build._handleBuildData(JSON.stringify({stream: testString}));
+      build._handleBuildData({stream: testString});
 
       expect(build.needAttach).to.equal(true);
       expect(
@@ -292,7 +289,7 @@ lab.experiment('build.js unit test', function () {
 
       var build = new Builder(ops);
 
-      build._handleBuildData(JSON.stringify({stream: testString}));
+      build._handleBuildData({stream: testString});
 
       expect(build.needAttach).to.be.undefined();
       expect(
@@ -331,7 +328,7 @@ lab.experiment('build.js unit test', function () {
 
         var build = new Builder(ops);
 
-        build._handleBuildData(JSON.stringify({stream: testString}));
+        build._handleBuildData({stream: testString});
 
         expect(build.needAttach).to.be.undefined();
         expect(
@@ -363,41 +360,13 @@ lab.experiment('build.js unit test', function () {
       };
 
       var build = new Builder(ops);
-      build._handleBuildData(JSON.stringify({stream: testString}));
+      build._handleBuildData({stream: testString});
       expect(build.needAttach).to.not.exist();
       expect(
         stubFs.withArgs(ops.logs.dockerBuild, testString).calledOnce)
         .to.equal(true);
       expect(process.stdout.write.notCalled).be.true();
       process.stdout.write.restore();
-      stubFs.restore();
-      done();
-    });
-
-    lab.it('should just print if parse error', function (done) {
-      var stubFs = sinon.stub(fs , 'appendFileSync');
-      var testString = 'i failed parse';
-
-      var ops = {
-        dirs: {
-          dockerContext: '/test/context'
-        },
-        logs: {
-          dockerBuild: '/test/log'
-        },
-        saveToLogs: function () {
-          return function(err, stdout) {
-            expect(stdout).to.equal(testString);
-          };
-        }
-      };
-
-      var build = new Builder(ops);
-      build._handleBuildData(testString);
-      expect(build.needAttach).to.not.exist();
-      expect(
-        stubFs.withArgs(ops.logs.dockerBuild, testString).calledOnce)
-        .to.equal(true);
       stubFs.restore();
       done();
     });
@@ -421,64 +390,10 @@ lab.experiment('build.js unit test', function () {
       };
 
       var build = new Builder(ops);
-      build._handleBuildData(JSON.stringify({stream: testString}));
+      build._handleBuildData({stream: testString});
       expect(build.needAttach).to.not.exist();
       expect(
         stubFs.withArgs(ops.logs.dockerBuild, testString).calledOnce)
-        .to.equal(true);
-      stubFs.restore();
-      done();
-    });
-
-    lab.it('should just print if no stream in data', function (done) {
-      var stubFs = sinon.stub(fs , 'appendFileSync');
-
-      var ops = {
-        dirs: {
-          dockerContext: '/test/context'
-        },
-        logs: {
-          dockerBuild: '/test/log'
-        },
-        saveToLogs: function () {
-          return function(err, stdout) {
-            expect(stdout).to.equal('');
-          };
-        }
-      };
-
-      var build = new Builder(ops);
-      build._handleBuildData(JSON.stringify({}));
-      expect(build.needAttach).to.not.exist();
-      expect(
-        stubFs.withArgs(ops.logs.dockerBuild, '').calledOnce)
-        .to.equal(true);
-      stubFs.restore();
-      done();
-    });
-
-    lab.it('should just print nothing if other keys passed', function (done) {
-      var stubFs = sinon.stub(fs , 'appendFileSync');
-
-      var ops = {
-        dirs: {
-          dockerContext: '/test/context'
-        },
-        logs: {
-          dockerBuild: '/test/log'
-        },
-        saveToLogs: function () {
-          return function(err, stdout) {
-            expect(stdout).to.equal('');
-          };
-        }
-      };
-
-      var build = new Builder(ops);
-      build._handleBuildData(JSON.stringify({other: 'key'}));
-      expect(build.needAttach).to.not.exist();
-      expect(
-        stubFs.withArgs(ops.logs.dockerBuild, '').calledOnce)
         .to.equal(true);
       stubFs.restore();
       done();
@@ -508,7 +423,7 @@ lab.experiment('build.js unit test', function () {
         .stub(build , '_handleNetworkAttach', function (data) {
           expect(data).to.equal(testString);
         });
-      build._handleBuildData(JSON.stringify({stream: testString}));
+      build._handleBuildData({stream: testString});
       expect(build.needAttach).to.equal(false);
       expect(
         stubFs.withArgs(ops.logs.dockerBuild, testString).calledOnce)
