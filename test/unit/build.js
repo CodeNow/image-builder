@@ -6,7 +6,6 @@ var expect = require('code').expect;
 var sinon = require('sinon');
 var createCount = require('callback-count');
 
-var events = require('events');
 var stream = require('stream');
 var fs = require('fs');
 var Builder = require('../../lib/steps/build.js');
@@ -219,7 +218,7 @@ lab.experiment('build.js unit test', function () {
       // var error = new Error('some error');
       sinon.stub(ctx.builder, '_handleBuildData');
       sinon.stub(ctx.builder.docker.modem, 'followProgress',
-        function (s, f, p) {
+        function (s, f) {
           f(new Error('some error'));
         });
 
