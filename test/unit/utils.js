@@ -33,7 +33,7 @@ lab.experiment('utils', function () {
       expect(console.log.calledOnce).to.be.true();
       expect(console.log.getCall(0).args[0]).to.equal(JSON.stringify({
         type: 'log',
-        content: 'a message'
+        content: 'a message\r\n'
       }));
       console.log.restore();
       done();
@@ -45,6 +45,17 @@ lab.experiment('utils', function () {
       expect(console.log.getCall(0).args[0]).to.equal(JSON.stringify({
         type: 'progress',
         content: { some: 'object' }
+      }));
+      console.log.restore();
+      done();
+    });
+    lab.it('does not add stuff to docker logs', function (done) {
+      sinon.stub(console, 'log');
+      utils.dockerLog('some stuff\n');
+      expect(console.log.calledOnce).to.be.true();
+      expect(console.log.getCall(0).args[0]).to.equal(JSON.stringify({
+        type: 'docker',
+        content: 'some stuff\n'
       }));
       console.log.restore();
       done();
