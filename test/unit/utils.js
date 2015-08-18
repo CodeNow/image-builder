@@ -33,7 +33,7 @@ lab.experiment('utils', function () {
       expect(console.log.calledOnce).to.be.true();
       expect(console.log.getCall(0).args[0]).to.equal(JSON.stringify({
         type: 'log',
-        content: 'a message'
+        content: 'a message\r\n'
       }));
       console.log.restore();
       done();

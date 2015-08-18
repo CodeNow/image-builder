@@ -18,11 +18,13 @@ describe('ImageDelivery unit test', function () {
     process.env.RUNNABLE_DOCKER = 'http://some.docker.host:4234';
     model = new ImageDelivery();
     sinon.stub(model.docker.modem, 'followProgress').yieldsAsync();
+    sinon.stub(console, 'log');
     done();
   });
   afterEach(function (done) {
     delete process.env.RUNNABLE_DOCKER;
     model.docker.modem.followProgress.restore();
+    console.log.restore();
     done();
   });
   describe('pushImage', function () {
