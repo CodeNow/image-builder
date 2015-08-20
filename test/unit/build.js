@@ -410,7 +410,7 @@ lab.experiment('build.js unit test', function () {
           dockerBuild: '/test/log'
         },
         saveToLogs: function () {
-          return function(err, stdout) {};
+          return function() {};
         }
       };
 
