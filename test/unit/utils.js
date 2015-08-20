@@ -27,6 +27,15 @@ lab.experiment('utils', function () {
       console.error.restore();
       done();
     });
+    lab.it('logs on event', function (done) {
+      sinon.stub(console, 'event');
+      var foo = 'something';
+      var bar = 'else';
+      utils.event(foo, bar);
+      expect(console.event.calledOnce).to.be.true();
+      console.event.restore();
+      done();
+    });
     lab.it('formats logs into an appropriate string', function (done) {
       sinon.stub(console, 'log');
       utils.log('a message');

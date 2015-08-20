@@ -111,7 +111,7 @@ lab.experiment('build.js unit test', function () {
     lab.it('should call buildImage with extra flags', function (done) {
       process.env.RUNNABLE_BUILD_FLAGS = JSON.stringify({
         testFlag: 'dockerTestArgs',
-        cpus: 100,
+        cpus: 100
       });
       var build = new Builder(defaultOps);
       var testRes = 'some string';
@@ -395,6 +395,31 @@ lab.experiment('build.js unit test', function () {
         stubFs.withArgs(ops.logs.dockerBuild, testString).calledOnce)
         .to.equal(true);
       stubFs.restore();
+      done();
+    });
+
+    lab.it('should send a unique event for step starts', function (done) {
+      var testString = 'Step 1 : RUN mkdir $HOME/.ssh';
+
+      var ops = {
+        dirs: {
+          dockerContext: '/test/context'
+        },
+        logs: {
+          dockerBuild: '/test/log'
+        }
+      };
+
+      var subConsoleEvent = sinon.stub(console.event);
+
+      var build = new Builder(ops);
+      build._handleBuildData({stream: testString});
+
+      console.log(subConsoleEvent.lastCall);
+
+      sinon.assert.calledOnce(subConsoleEvent);
+
+      subConsoleEvent.restore();
       done();
     });
 
