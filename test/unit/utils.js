@@ -39,7 +39,7 @@ lab.experiment('utils', function () {
         type: 'event',
         content: testObj
       }));
-      console.event.restore();
+      console.log.restore();
       done();
     });
     lab.it('formats logs into an appropriate string', function (done) {
