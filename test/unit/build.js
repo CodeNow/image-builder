@@ -408,20 +408,30 @@ lab.experiment('build.js unit test', function () {
         },
         logs: {
           dockerBuild: '/test/log'
+        },
+        saveToLogs: function () {
+          return function(err, stdout) {};
         }
       };
 
-      var subConsoleEvent = sinon.stub(console.event);
+      sinon.stub(console, 'log');
 
       var build = new Builder(ops);
       build._handleBuildData({stream: testString});
 
-      console.log(subConsoleEvent.lastCall);
-
-      sinon.assert.calledOnce(subConsoleEvent);
+      var lastCall = console.log.lastCall;
+      sinon.assert.calledOnce(console.log);
 
       stubFs.restore();
-      subConsoleEvent.restore();
+      console.log.restore();
+
+      expect(lastCall.args[0]).to.equal(JSON.stringify({
+        type: 'event',
+        content: {
+          event: 'step',
+          content: testString
+        }
+      }));
       done();
     });
 
