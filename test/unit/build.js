@@ -399,6 +399,7 @@ lab.experiment('build.js unit test', function () {
     });
 
     lab.it('should send a unique event for step starts', function (done) {
+      var stubFs = sinon.stub(fs , 'appendFileSync');
       var testString = 'Step 1 : RUN mkdir $HOME/.ssh';
 
       var ops = {
@@ -419,6 +420,7 @@ lab.experiment('build.js unit test', function () {
 
       sinon.assert.calledOnce(subConsoleEvent);
 
+      stubFs.restore();
       subConsoleEvent.restore();
       done();
     });

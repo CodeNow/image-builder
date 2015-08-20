@@ -28,11 +28,17 @@ lab.experiment('utils', function () {
       done();
     });
     lab.it('logs on event', function (done) {
-      sinon.stub(console, 'event');
-      var foo = 'something';
-      var bar = 'else';
-      utils.event(foo, bar);
-      expect(console.event.calledOnce).to.be.true();
+      sinon.stub(console, 'log');
+      var testObj = {
+        event: 'step',
+        content: 'This is test content'
+      };
+      utils.event(testObj);
+      expect(console.log.calledOnce).to.be.true();
+      expect(console.log.getCall(0).args[0]).to.equal(JSON.stringify({
+        type: 'event',
+        content: testObj
+      }));
       console.event.restore();
       done();
     });
