@@ -8,25 +8,36 @@ var after = lab.after;
 var beforeEach = lab.beforeEach;
 var afterEach = lab.afterEach;
 var sinon = require('sinon');
-var ImageDelivery = require('../../lib/steps/image-delivery.js');
+var childProcess = require('child_process');
 
 var steps = require('../../lib/steps');
 
 lab.experiment('pushImage', function () {
   before(function(done) {
     process.env.RUNNABLE_DOCKER = 'http://fake.host:4242';
+    process.env.RUNNABLE_DOCKERTAG = 'registry.runnable.com/111/222:333';
+    process.env.RUNNABLE_IMAGE_BUILDER_NAME = 'builder';
+    process.env.RUNNABLE_IMAGE_BUILDER_TAG = '1738';
+
+    sinon.stub(steps, 'saveToLogs', function (cb) {
+      return cb;
+    });
     done();
   });
   beforeEach(function(done) {
-    sinon.stub(ImageDelivery.prototype, 'pushImage');
+    sinon.stub(childProcess, 'exec').yieldsAsync();
     done();
   });
   afterEach(function(done) {
-    ImageDelivery.prototype.pushImage.restore();
+    childProcess.exec.restore();
     done();
   });
   after(function(done) {
     delete process.env.RUNNABLE_DOCKER;
+    delete process.env.RUNNABLE_DOCKERTAG;
+    delete process.env.RUNNABLE_IMAGE_BUILDER_NAME;
+    delete process.env.RUNNABLE_IMAGE_BUILDER_TAG;
+    steps.saveToLogs.restore();
     done();
   });
   lab.experiment('with push image defined', function () {
@@ -39,21 +50,14 @@ lab.experiment('pushImage', function () {
       done();
     });
     lab.test('should push image', function (done) {
-      ImageDelivery.prototype.pushImage.yieldsAsync();
       steps.pushImage(function (err) {
         expect(err).to.be.undefined();
-        expect(ImageDelivery.prototype.pushImage
-          .calledWith(process.env.RUNNABLE_DOCKERTAG))
-          .to.be.true();
-        done();
-      });
-    });
-    lab.test('should set error if push failed', function (done) {
-      ImageDelivery.prototype.pushImage.yieldsAsync(new Error('flop'));
-      steps.pushImage(function (err) {
-        expect(err.message).to.be.exist();
-        expect(ImageDelivery.prototype.pushImage
-          .calledWith(process.env.RUNNABLE_DOCKERTAG))
+        expect(childProcess.exec
+          .calledWith('docker --host http://fake.host:4242 run -d ' +
+            '--label=imagePush --restart=on-failure:5 ' +
+            '-e "RUNNABLE_DOCKER=http://fake.host:4242" ' +
+            '-e "RUNNABLE_DOCKERTAG=registry.runnable.com/111/222:333" ' +
+            ' builder:1738 node pushImage'))
           .to.be.true();
         done();
       });
@@ -61,10 +65,9 @@ lab.experiment('pushImage', function () {
   });
   lab.experiment('with push image not defined', function () {
     lab.test('should not push image', function (done) {
-      ImageDelivery.prototype.pushImage.yieldsAsync();
       steps.pushImage(function (err) {
         expect(err).to.be.undefined();
-        expect(ImageDelivery.prototype.pushImage.called).to.be.false();
+        expect(childProcess.exec.called).to.be.false();
         done();
       });
     });
