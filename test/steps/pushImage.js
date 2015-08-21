@@ -54,7 +54,7 @@ lab.experiment('pushImage', function () {
         expect(err).to.be.undefined();
         expect(childProcess.exec
           .calledWith('docker --host http://fake.host:4242 run -d ' +
-            '--label=imagePush --restart=on-failure:5 ' +
+            '--label="type=imagePush" --restart=on-failure:5 ' +
             '-e "RUNNABLE_DOCKER=http://fake.host:4242" ' +
             '-e "RUNNABLE_DOCKERTAG=registry.runnable.com/111/222:333" ' +
             ' builder:1738 node pushImage'))
