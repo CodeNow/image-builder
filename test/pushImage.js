@@ -11,7 +11,7 @@ var sinon = require('sinon');
 
 var ImageDelivery = require('../lib/steps/image-delivery.js');
 
-describe('pushImage.js test', function () {
+describe('push-image.js test', function () {
   beforeEach(function(done) {
     process.env.RUNNABLE_DOCKER = 'http://fake.host:4242';
     process.env.RUNNABLE_DOCKERTAG = 'registry.runnable.com/111/222:333';
@@ -26,7 +26,7 @@ describe('pushImage.js test', function () {
 
   afterEach(function(done) {
     // flush cache because this is a script
-    delete require.cache[require.resolve('../lib/pushImage.js')];
+    delete require.cache[require.resolve('../lib/push-image.js')];
     process.exit.restore();
     ImageDelivery.prototype.pushImage.restore();
     done();
@@ -46,7 +46,7 @@ describe('pushImage.js test', function () {
 
     lab.test('exit with 128', function (done) {
       delete process.env.RUNNABLE_DOCKER;
-      require('../lib/pushImage.js');
+      require('../lib/push-image.js');
       expect(process.exit.withArgs(128).called).to.be.true();
       expect(ImageDelivery.prototype.pushImage.called).to.be.false();
       done();
@@ -54,7 +54,7 @@ describe('pushImage.js test', function () {
 
     lab.test('exit with 128', function (done) {
       delete process.env.RUNNABLE_DOCKERTAG;
-      require('../lib/pushImage.js');
+      require('../lib/push-image.js');
       expect(process.exit.withArgs(128).called).to.be.true();
       expect(ImageDelivery.prototype.pushImage.called).to.be.false();
       done();
@@ -64,7 +64,7 @@ describe('pushImage.js test', function () {
   describe('valid env', function () {
     lab.test('exit with 1 on push fail', function (done) {
       ImageDelivery.prototype.pushImage.yields(new Error('fireball'));
-      require('../lib/pushImage.js');
+      require('../lib/push-image.js');
       expect(process.exit.withArgs(1).called).to.be.true();
       expect(ImageDelivery.prototype.pushImage.called).to.be.true();
       done();
@@ -72,10 +72,10 @@ describe('pushImage.js test', function () {
 
     lab.test('exit with 0 on success', function (done) {
       ImageDelivery.prototype.pushImage.yields();
-      require('../lib/pushImage.js');
+      require('../lib/push-image.js');
       expect(process.exit.withArgs(0).called).to.be.true();
       expect(ImageDelivery.prototype.pushImage.called).to.be.true();
       done();
     });
   }); // end missing tags
-}); // end pushImage.js test
+}); // end push-image.js test
