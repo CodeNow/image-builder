@@ -44,7 +44,7 @@ describe('pushImage.js test', function () {
       done();
     });
 
-    lab.test('exit with 1', function (done) {
+    lab.test('exit with 128', function (done) {
       delete process.env.RUNNABLE_DOCKER;
       require('../lib/pushImage.js');
       expect(process.exit.withArgs(128).called).to.be.true();
@@ -52,7 +52,7 @@ describe('pushImage.js test', function () {
       done();
     });
 
-    lab.test('exit with 1', function (done) {
+    lab.test('exit with 128', function (done) {
       delete process.env.RUNNABLE_DOCKERTAG;
       require('../lib/pushImage.js');
       expect(process.exit.withArgs(128).called).to.be.true();
