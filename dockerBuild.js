@@ -6,7 +6,17 @@ var async = require('async');
 var steps = require('./lib/steps');
 var utils = require('./lib/utils');
 
+function printTimestamp () {
+  utils.heartbeat();
+}
+var interval;
+
 async.series([
+    function (cb) {
+      printTimestamp();
+      interval = setInterval(printTimestamp, 15*1000);
+      cb();
+    },
     steps.checkForRequiredEnvVars,
     steps.makeWorkingFolders,
     steps.downloadDeployKeys,
@@ -30,6 +40,7 @@ async.series([
       }
       process.exit(1);
     }
+    clearInterval(interval);
     utils.log(
       colors.green.bold(msgPrefix + 'Build completed successfully!'));
   }
