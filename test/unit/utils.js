@@ -31,10 +31,10 @@ lab.experiment('utils', function () {
       sinon.stub(console, 'log');
       utils.log('a message');
       expect(console.log.calledOnce).to.be.true();
-      expect(console.log.getCall(0).args[0]).to.equal(JSON.stringify({
-        type: 'log',
-        content: 'a message\r\n'
-      }));
+      var args = JSON.parse(console.log.getCall(0).args[0]);
+      expect(args.type).to.equal('log');
+      expect(args.content).to.deep.equal('a message\r\n');
+      expect(Date.parse(args.timestamp)).to.be.about(Date.now(), 20);
       console.log.restore();
       done();
     });
@@ -42,10 +42,10 @@ lab.experiment('utils', function () {
       sinon.stub(console, 'log');
       utils.progress({ some: 'object' });
       expect(console.log.calledOnce).to.be.true();
-      expect(console.log.getCall(0).args[0]).to.equal(JSON.stringify({
-        type: 'progress',
-        content: { some: 'object' }
-      }));
+      var args = JSON.parse(console.log.getCall(0).args[0]);
+      expect(args.type).to.equal('progress');
+      expect(args.content).to.deep.equal({ some: 'object' });
+      expect(Date.parse(args.timestamp)).to.be.about(Date.now(), 20);
       console.log.restore();
       done();
     });
@@ -53,10 +53,22 @@ lab.experiment('utils', function () {
       sinon.stub(console, 'log');
       utils.dockerLog('some stuff\n');
       expect(console.log.calledOnce).to.be.true();
-      expect(console.log.getCall(0).args[0]).to.equal(JSON.stringify({
-        type: 'docker',
-        content: 'some stuff\n'
-      }));
+      var args = JSON.parse(console.log.getCall(0).args[0]);
+      expect(args.type).to.equal('docker');
+      expect(args.content).to.deep.equal('some stuff\n');
+      expect(Date.parse(args.timestamp)).to.be.about(Date.now(), 20);
+      console.log.restore();
+      done();
+    });
+    lab.it('logs a heartbeat', function (done) {
+      sinon.stub(console, 'log');
+      utils.heartbeat();
+      expect(console.log.calledOnce).to.be.true();
+      var args = JSON.parse(console.log.getCall(0).args[0]);
+      expect(args.type).to.equal('heartbeat');
+      var version = require('../../package.json').version;
+      expect(args.content).to.deep.equal({version: version});
+      expect(Date.parse(args.timestamp)).to.be.about(Date.now(), 20);
       console.log.restore();
       done();
     });
