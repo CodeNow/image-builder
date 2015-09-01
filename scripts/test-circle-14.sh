@@ -38,7 +38,6 @@ echo "looking for push-image and waiting"
 running_containers=$(docker ps --no-trunc | grep "push-image" | wc -l)
 test $running_containers = "1" || (echo "container should be running push-image" && false)
 # wait for the container, and it should be successful
-docker wait $(docker ps  --no-trunc | grep "push-image" | awk '{print $1}')
+exit_code=`docker wait $(docker ps  --no-trunc | grep "push-image" | awk '{print $1}')`
 
-echo "checking layer cache status"
-
+test $exit_code = "0" || (echo "push-image should have exit 0 " && false)
