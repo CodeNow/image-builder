@@ -21,6 +21,8 @@ docker run \
   -e RUNNABLE_DOCKERTAG='test-built-image' \
   -e RUNNABLE_DOCKER_BUILDOPTIONS='' \
   -e RUNNABLE_PUSH_IMAGE='true' \
+  -e RUNNABLE_IMAGE_BUILDER_NAME='test-image-builder' \
+  -e RUNNABLE_IMAGE_BUILDER_TAG='latest' \
   -v `pwd`/test-"$test_num":/cache:rw  \
   test-image-builder
 
