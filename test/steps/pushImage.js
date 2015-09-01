@@ -57,7 +57,7 @@ lab.experiment('pushImage', function () {
             '--label="type=imagePush" --restart=on-failure:5 ' +
             '-e "RUNNABLE_DOCKER=http://fake.host:4242" ' +
             '-e "RUNNABLE_DOCKERTAG=registry.runnable.com/111/222:333" ' +
-            ' builder:1738 node pushImage'))
+            ' builder:1738 node ./lib/push-image.js'))
           .to.be.true();
         done();
       });
