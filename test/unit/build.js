@@ -175,7 +175,9 @@ lab.experiment('build.js unit test', function () {
   lab.experiment('_handleBuild', function () {
     lab.beforeEach(function (done) {
       ctx.builder = new Builder(defaultOps);
-      sinon.stub(ctx.builder, 'saveToLogs').returns(function () {});
+      sinon.stub(ctx.builder, 'saveToLogs', function (cb) {
+        return cb;
+      });
       done();
     });
     lab.afterEach(function (done) {
@@ -219,7 +221,9 @@ lab.experiment('build.js unit test', function () {
       sinon.stub(ctx.builder, '_handleBuildData');
       sinon.stub(ctx.builder.docker.modem, 'followProgress',
         function (s, f) {
-          f(new Error('some error'));
+          // the final callback returns a String if there's an error.
+          // seriously.
+          f('some error');
         });
 
       // start handling stuff (count.next here is the exit event)
