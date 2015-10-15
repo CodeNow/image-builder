@@ -11,13 +11,17 @@ var proxyServer = http.createServer(function (req, res) {
     return res.end(JSON.stringify({ 'stream': 'Successfully pushed' }));
   }
   proxy.web(req, res, {
-    target: 'tcp://192.168.99.101:2376'
+    target: {
+      socketPath: '/var/run/docker.sock'
+    }
   });
 });
 
 proxyServer.on('upgrade', function (req, socket, head) {
   proxy.ws(req, socket, head, {
-    target: 'tcp://192.168.99.101:2376'
+    target: {
+      socketPath: '/var/run/docker.sock'
+    }
   });
 });
 

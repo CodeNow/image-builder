@@ -6,7 +6,7 @@ test_num="12.1"
 full_repo="bkendall/flaming-octo-nemesis"
 
 mkdir -p ./test-"$test_num"/"$full_repo"
-echo `pwd`/scripts/weaveMock
+
 docker run \
   -e RUNNABLE_AWS_ACCESS_KEY="$AWS_ACCESS_KEY" \
   -e RUNNABLE_AWS_SECRET_KEY="$AWS_SECRET_KEY" \
