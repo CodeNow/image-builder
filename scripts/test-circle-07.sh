@@ -33,10 +33,10 @@ build "a6bcee0dfa896ba50118b465ccd9128989d231f5"
 after=$(stat -t ./test-"$test_num"/"$full_repo"/.git)
 
 # it should not be locked
-test ! -d ./test-"$test_num"/"$full_repo".lock
+test ! -d ./test-"$test_num"/"$full_repo".lock || echo 1
 # the repo should exist
-test -e ./test-"$test_num"/"$full_repo"
+test -e ./test-"$test_num"/"$full_repo" || echo 2
 # and the repo should be populated (from the first build)
-test -f ./test-"$test_num"/"$full_repo"/README.md
+test -f ./test-"$test_num"/"$full_repo"/README.md || echo 3
 # the .git folder should have changed it's git commit
-test ! "$before" = "$after"
+test ! "$before" = "$after" || echo 4

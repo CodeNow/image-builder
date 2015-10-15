@@ -6,7 +6,7 @@ test_num="12.1"
 full_repo="bkendall/flaming-octo-nemesis"
 
 mkdir -p ./test-"$test_num"/"$full_repo"
-
+echo `pwd`/scripts/weaveMock
 docker run \
   -e RUNNABLE_AWS_ACCESS_KEY="$AWS_ACCESS_KEY" \
   -e RUNNABLE_AWS_SECRET_KEY="$AWS_SECRET_KEY" \
@@ -24,10 +24,10 @@ docker run \
   -e RUNNABLE_IMAGE_BUILDER_TAG='latest' \
   -e DOCKER_IMAGE_BUILDER_LAYER_CACHE="`pwd`/test-$test_num/layer-cache" \
   -e RUNNABLE_WAIT_FOR_WEAVE='trap "echo | nc -q 0 localhost 5356" INT; nc -l -p 5356 & wait; ' \
-  -e RUNNABLE_NETWORK_IP='10.0.0.0' \
+  -e RUNNABLE_WEAVE_PATH='/bin/weave' \
   -e RUNNABLE_HOST_IP='10.0.0.1' \
-  -e RUNNABLE_SAURON_HOST="$(cat DOCKER_IP):5355" \
-  -e RUNNABLE_NETWORK_DRIVER='signal' \
+  -e RUNNABLE_CIDR="32" \
+  -v `pwd`/scripts/weaveMock:/bin/weave \
   -v `pwd`/test-"$test_num":/cache:rw \
   -v `pwd`/test-"$test_num"/layer-cache:/layer-cache \
   test-image-builder
@@ -57,11 +57,10 @@ docker run \
   -e RUNNABLE_IMAGE_BUILDER_TAG='latest' \
   -e DOCKER_IMAGE_BUILDER_LAYER_CACHE="`pwd`/test-$test_num/layer-cache" \
   -e RUNNABLE_WAIT_FOR_WEAVE='nc -l 5356; ' \
-  -e RUNNABLE_NETWORK_IP='10.0.0.0' \
+  -e RUNNABLE_WEAVE_PATH='/bin/weave' \
   -e RUNNABLE_HOST_IP='10.0.0.1' \
-  -e RUNNABLE_SAURON_HOST="$(cat DOCKER_IP):5355" \
-  -e RUNNABLE_NETWORK_DRIVER='signal' \
-  -e SAURON_FAIL='yes' \
+  -e RUNNABLE_CIDR="32" \
+  -v `pwd`/scripts/weaveMockFail:/bin/weave \
   -v `pwd`/test-"$test_num":/cache:rw \
   -v `pwd`/test-"$test_num"/layer-cache:/layer-cache \
   test-image-builder || touch $testlog.test
