@@ -24,14 +24,16 @@ var defaultOps = {
 var ctx = {};
 function setupWeaveEnv () {
   process.env.RUNNABLE_WAIT_FOR_WEAVE = 'waitForWeave; ';
-  process.env.RUNNABLE_NETWORK_IP = '10.0.0.0';
+  process.env.RUNNABLE_CIDR = '32';
   process.env.RUNNABLE_HOST_IP = '10.0.0.1';
+  process.env.RUNNABLE_WEAVE_PATH = '/bin/weave';
 }
 
 function cleanWeaveEnv () {
   delete process.env.RUNNABLE_WAIT_FOR_WEAVE;
-  delete process.env.RUNNABLE_NETWORK_IP;
+  delete process.env.RUNNABLE_CIDR;
   delete process.env.RUNNABLE_HOST_IP;
+  delete process.env.RUNNABLE_WEAVE_PATH;
 }
 
 lab.experiment('build.js unit test', function () {
@@ -50,8 +52,8 @@ lab.experiment('build.js unit test', function () {
 
   var saveEnvironmentVars = {
     'RUNNABLE_DOCKER': 'tcp://localhost:5555',
-    'RUNNABLE_SAURON_HOST': 'localhost:5555',
-    'RUNNABLE_NETWORK_DRIVER': 'signal'
+    'RUNNABLE_CIDR': '32',
+    'RUNNABLE_WEAVE_PATH': '/bin/weave'
   };
   lab.beforeEach(function (done) {
     Object.keys(saveEnvironmentVars).forEach(function (key) {

@@ -1,0 +1,4 @@
+#!/bin/bash
+# sleep needs to be here due to race of this code
+sleep 1
+docker -H $RUNNABLE_DOCKER kill -s 'SIGINT' $3
