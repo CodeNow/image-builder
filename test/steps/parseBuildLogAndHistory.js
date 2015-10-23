@@ -83,7 +83,7 @@ lab.experiment('parseBuildLogAndHistory', function () {
             { maxBuffer: 1024 * 5000 },
             sinon.match.func
           );
-          childProcess.restore();
+          childProcess.exec.restore();
           done();
         });
       });
