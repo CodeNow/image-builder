@@ -73,6 +73,20 @@ lab.experiment('parseBuildLogAndHistory', function () {
           done();
         });
       });
+      lab.test('should have a large buffer', function (done) {
+        sinon.spy(child_process, 'exec');
+        steps.parseBuildLogAndHistory(function (err) {
+          if (err) { return done(err); }
+          sinon.assert.calledWith(
+            child_process.exec,
+            /docker .+history.+/,
+            { maxBuffer: 1024 * 5000 },
+            sinon.match.func
+          );
+          child_process.restore();
+          done();
+        });
+      });
     });
 
     lab.experiment('with funky runnable-cache', function () {
