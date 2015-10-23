@@ -74,7 +74,7 @@ lab.experiment('parseBuildLogAndHistory', function () {
         });
       });
       lab.test('should have a large buffer', function (done) {
-        sinon.spy(child_process, 'exec');
+        sinon.spy(childProcess, 'exec');
         steps.parseBuildLogAndHistory(function (err) {
           if (err) { return done(err); }
           sinon.assert.calledWith(
