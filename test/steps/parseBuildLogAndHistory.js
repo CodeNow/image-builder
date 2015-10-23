@@ -78,12 +78,12 @@ lab.experiment('parseBuildLogAndHistory', function () {
         steps.parseBuildLogAndHistory(function (err) {
           if (err) { return done(err); }
           sinon.assert.calledWith(
-            child_process.exec,
+            childProcess.exec,
             /docker .+history.+/,
             { maxBuffer: 1024 * 5000 },
             sinon.match.func
           );
-          child_process.restore();
+          childProcess.restore();
           done();
         });
       });
