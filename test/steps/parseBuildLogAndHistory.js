@@ -59,6 +59,15 @@ lab.experiment('parseBuildLogAndHistory', function () {
     childProcess.exec('rm -rf ' + layerCacheDir + '/*', done);
   });
 
+  lab.beforeEach(function (done) {
+    sinon.spy(childProcess, 'exec');
+    done();
+  });
+  lab.afterEach(function (done) {
+    childProcess.exec.restore();
+    done();
+  });
+
   lab.experiment('succeeds', function () {
     lab.beforeEach(steps.makeWorkingFolders.bind(steps));
 
@@ -70,6 +79,19 @@ lab.experiment('parseBuildLogAndHistory', function () {
         steps.parseBuildLogAndHistory(function (err) {
           if (err) { return done(err); }
           expect(steps.data.cacheThisLayer).to.be.match(/^[a-f0-9]+$/);
+          done();
+        });
+      });
+      lab.test('should have a large buffer', function (done) {
+        childProcess.exec.reset();
+        steps.parseBuildLogAndHistory(function (err) {
+          if (err) { return done(err); }
+          sinon.assert.calledWith(
+            childProcess.exec,
+            sinon.match(/docker .+history.+/),
+            { maxBuffer: 1024 * 5000 },
+            sinon.match.func
+          );
           done();
         });
       });
@@ -107,14 +129,7 @@ lab.experiment('parseBuildLogAndHistory', function () {
       lab.beforeEach(steps.runDockerBuild.bind(steps));
       lab.beforeEach(function (done) {
         expect(!!steps.data.usingCache).to.be.true();
-        done();
-      });
-      lab.beforeEach(function (done) {
-        sinon.spy(childProcess, 'exec');
-        done();
-      });
-      lab.afterEach(function (done) {
-        childProcess.exec.restore();
+        childProcess.exec.reset();
         done();
       });
 
