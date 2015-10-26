@@ -6,8 +6,6 @@ var expect = require('code').expect;
 
 var childProcess = require('child_process');
 var sinon = require('sinon');
-var fs = require('fs');
-var path = require('path');
 
 var cacheDir = process.env.CACHE_DIR;
 if (!cacheDir) {
@@ -26,16 +24,9 @@ var requiredEnvVars = {
 };
 
 lab.before(function (done) {
-  process.env.RUNNABLE_WAIT_FOR_WEAVE =
-    'until grep -q ethwe /proc/net/dev; do sleep 1; done; ';
   Object.keys(requiredEnvVars).forEach(function (key) {
     process.env[key] = requiredEnvVars[key];
   });
-  done();
-});
-
-lab.after(function (done) {
-  delete process.env.RUNNABLE_WAIT_FOR_WEAVE;
   done();
 });
 
@@ -73,10 +64,6 @@ lab.experiment('parseDockerfile', function () {
           expect(!!steps.data.usingCache).to.be.false();
           expect(steps.data.cachedLine).to.not.be.undefined();
           expect(steps.data.createdByHash).to.not.be.undefined();
-          var dockerfile =
-            fs.readFileSync(path.join(steps.dirs.dockerContext, 'Dockerfile'))
-              .toString();
-          expect(dockerfile).to.contain(process.env.RUNNABLE_WAIT_FOR_WEAVE);
           done();
         });
       });
@@ -114,10 +101,6 @@ lab.experiment('parseDockerfile', function () {
           expect(!!steps.data.usingCache).to.be.false();
           expect(steps.data.cachedLine).to.not.be.undefined();
           expect(steps.data.createdByHash).to.not.be.undefined();
-          var dockerfile =
-            fs.readFileSync(path.join(steps.dirs.dockerContext, 'Dockerfile'))
-              .toString();
-          expect(dockerfile).to.contain(process.env.RUNNABLE_WAIT_FOR_WEAVE);
           done();
         });
       });
@@ -153,10 +136,6 @@ lab.experiment('parseDockerfile', function () {
           expect(!!steps.data.usingCache).to.be.false();
           expect(steps.data.cachedLine).to.be.undefined();
           expect(steps.data.createdByHash).to.be.undefined();
-          var dockerfile =
-            fs.readFileSync(path.join(steps.dirs.dockerContext, 'Dockerfile'))
-              .toString();
-          expect(dockerfile).to.contain(process.env.RUNNABLE_WAIT_FOR_WEAVE);
           done();
         });
       });
@@ -189,10 +168,6 @@ lab.experiment('parseDockerfile', function () {
           expect(steps.data.createdByHash).to.not.be.undefined();
           // using a cache!
           expect(childProcess.exec.callCount).to.equal(1);
-          var dockerfile =
-            fs.readFileSync(path.join(steps.dirs.dockerContext, 'Dockerfile'))
-              .toString();
-          expect(dockerfile).to.contain(process.env.RUNNABLE_WAIT_FOR_WEAVE);
           done();
         });
       });
