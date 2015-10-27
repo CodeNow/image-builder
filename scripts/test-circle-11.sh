@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# should append waitForWeave after RUN and CMD but not output weave in the logs
+# should append waitForWeave after RUN and CMD 
+# should hide waitForWeave string on RUN line
 set -e
 
 test_num="11.1"
