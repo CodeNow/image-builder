@@ -25,10 +25,6 @@ docker run \
   -e RUNNABLE_IMAGE_BUILDER_TAG='latest' \
   -e DOCKER_IMAGE_BUILDER_LAYER_CACHE="`pwd`/test-$test_num/layer-cache" \
   -e RUNNABLE_WAIT_FOR_WEAVE='echo waitForWeave; ' \
-  -e RUNNABLE_WEAVE_PATH='/bin/weave' \
-  -e RUNNABLE_HOST_IP='10.0.0.1' \
-  -e RUNNABLE_CIDR="32" \
-  -v `pwd`/scripts/weaveMock:/bin/weave \
   -v `pwd`/test-"$test_num":/cache:rw \
   -v `pwd`/test-"$test_num"/layer-cache:/layer-cache \
   test-image-builder | tee $build_log
