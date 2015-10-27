@@ -35,9 +35,9 @@ test -f ./test-"$test_num"/"$full_repo"/README.md || (echo "repo should be popul
 
 echo "looking for push-image and waiting"
 # the push-image should be running
-running_containers=$(docker ps --no-trunc | grep "push-image" | wc -l)
+running_containers=$(docker ps -a --no-trunc | grep "push-image" | wc -l)
 test $running_containers = "1" || (echo "container should be running push-image" && false)
 # wait for the container, and it should be successful
-exit_code=`docker wait $(docker ps  --no-trunc | grep "push-image" | awk '{print $1}')`
+exit_code=`docker wait $(docker ps -a --no-trunc | grep "push-image" | awk '{print $1}')`
 
 test $exit_code = "0" || (echo "push-image should have exit 0 " && false)
