@@ -50,7 +50,8 @@ describe('build.js unit test', function () {
   });
 
   var saveEnvironmentVars = {
-    'RUNNABLE_DOCKER': 'tcp://localhost:5555'
+    'RUNNABLE_DOCKER': 'tcp://localhost:5555',
+    'RUNNABLE_WAIT_FOR_WEAVE': 'waitForWeave; '
   };
   beforeEach(function (done) {
     Object.keys(saveEnvironmentVars).forEach(function (key) {
@@ -81,10 +82,12 @@ describe('build.js unit test', function () {
       process.env.RUNNABLE_DOCKERTAG = 'some-tag';
       done();
     });
+
     after(function(done) {
       delete process.env.RUNNABLE_DOCKERTAG;
       done();
     });
+
     it('should call buildImage with correct tag', function (done) {
       var build = new Builder(defaultOps);
       var testRes = 'some string';
@@ -107,6 +110,7 @@ describe('build.js unit test', function () {
         done();
       });
     });
+
     it('should call buildImage with extra flags', function (done) {
       process.env.RUNNABLE_BUILD_FLAGS = JSON.stringify({
         testFlag: 'dockerTestArgs',
@@ -138,6 +142,7 @@ describe('build.js unit test', function () {
         done();
       });
     });
+
     it('should callback error is buildImage errored', function (done) {
       var build = new Builder(defaultOps);
       var someErr = 'test err';
@@ -179,6 +184,7 @@ describe('build.js unit test', function () {
       });
       done();
     });
+
     afterEach(function (done) {
       ctx.builder.saveToLogs.restore();
       done();
@@ -257,8 +263,6 @@ describe('build.js unit test', function () {
     });
 
     it('should call progress if not stream', function (done) {
-
-
       var build = new Builder(ops);
       build._handleBuildData({other: 'testString'});
       expect(utils.progress.called).be.true();
@@ -301,6 +305,32 @@ describe('build.js unit test', function () {
       expect(
         fs.appendFileSync.withArgs(ops.logs.dockerBuild, testString).calledOnce)
         .to.equal(true);
+      done();
+    });
+
+    it('should remove weave from output', function (done) {
+      var testString = '  RUN ' + process.env.RUNNABLE_WAIT_FOR_WEAVE +
+        'npm install';
+
+      var build = new Builder(ops);
+      build._handleBuildData({stream: testString});
+      expect(
+        fs.appendFileSync.withArgs(ops.logs.dockerBuild, testString).calledOnce)
+        .to.equal(true);
+      expect(utils.dockerLog.args[0][0]).to.equal('  RUN npm install');
+      done();
+    });
+
+    it('should ignore if waitForWeave not defined', function (done) {
+      delete process.env.RUNNABLE_WAIT_FOR_WEAVE;
+      var testString = '  RUN npm install';
+
+      var build = new Builder(ops);
+      build._handleBuildData({stream: testString});
+      expect(
+        fs.appendFileSync.withArgs(ops.logs.dockerBuild, testString).calledOnce)
+        .to.equal(true);
+      expect(utils.dockerLog.args[0][0]).to.equal('  RUN npm install');
       done();
     });
   });

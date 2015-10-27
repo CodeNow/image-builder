@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# should append waitForWeave after RUN and CMD
+# should append waitForWeave after RUN and CMD but not output weave in the logs
 set -e
 
 test_num="11.1"
@@ -24,12 +24,14 @@ docker run \
   -e RUNNABLE_IMAGE_BUILDER_NAME='test-image-builder' \
   -e RUNNABLE_IMAGE_BUILDER_TAG='latest' \
   -e DOCKER_IMAGE_BUILDER_LAYER_CACHE="`pwd`/test-$test_num/layer-cache" \
-  -e RUNNABLE_WAIT_FOR_WEAVE='echo waitForWeave > /dev/null; ' \
+  -e RUNNABLE_WAIT_FOR_WEAVE='echo waitForWeave' \
   -v `pwd`/test-"$test_num":/cache:rw \
   -v `pwd`/test-"$test_num"/layer-cache:/layer-cache \
   test-image-builder | tee $build_log
 
 # waitForWeave should be in output 2 times
+# once from the echo weave
+# once from CMD line
 # if grep does not see a match, it will return a non-zero code
 grep -q "waitForWeave" $build_log | wc -l
 test "$?" = "0" || (echo "waitForWeave should be added" && false)
