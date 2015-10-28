@@ -4,11 +4,17 @@ var Lab = require('lab');
 var lab = exports.lab = Lab.script();
 var expect = require('code').expect;
 var it = lab.test;
+var beforeEach = lab.beforeEach;
 
 var parser = require('../../lib/steps/injector.js');
 
 lab.experiment('injector.js', function () {
   lab.experiment('without weave', function () {
+    beforeEach(function(done) {
+      delete process.env.RUNNABLE_WAIT_FOR_WEAVE;
+      done();
+    });
+
     it('should NOT add weave to various files', function(done) {
       [
         'FROM ubuntu\nrrun some stuff\nWORKDIR home',
