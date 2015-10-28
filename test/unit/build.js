@@ -13,10 +13,9 @@ var expect = Code.expect;
 
 var sinon = require('sinon');
 var createCount = require('callback-count');
-var afterEach = afterEach;
-var beforeEach = beforeEach;
 var stream = require('stream');
 var fs = require('fs');
+
 var Builder = require('../../lib/steps/build.js');
 var utils = require('../../lib/utils');
 

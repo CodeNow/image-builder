@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# should append waitForWeave after RUN and CMD 
-# should hide waitForWeave string on RUN line
+# should append waitForWeave after RUN and CMD in the dockerfile
+# but should hide waitForWeave string on RUN line in build output
 set -e
 
 test_num="11.1"

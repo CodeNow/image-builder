@@ -9,7 +9,6 @@ var beforeEach = lab.beforeEach;
 var parser = require('../../lib/steps/injector.js');
 
 lab.experiment('injector.js', function () {
-
   lab.experiment('without weave', function () {
     beforeEach(function(done) {
       delete process.env.RUNNABLE_WAIT_FOR_WEAVE;
