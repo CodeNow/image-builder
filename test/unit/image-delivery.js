@@ -10,6 +10,7 @@ var Code = require('code');
 var expect = Code.expect;
 var sinon = require('sinon');
 var Dockerode = require('dockerode');
+var ErrorCat = require('error-cat');
 var ImageDelivery = require('../../lib/steps/image-delivery.js');
 
 describe('ImageDelivery unit test', function () {
@@ -43,29 +44,78 @@ describe('ImageDelivery unit test', function () {
       done();
     });
 
-    it('should pull image', function (done) {
+    it('should push image', function (done) {
       mockObj.push.yieldsAsync();
       model.pushImage(testImage, function (err) {
         expect(err).to.not.exist();
-        expect(Dockerode.prototype.getImage
-          .withArgs(testImageName)
-          .calledOnce).to.be.true();
-        expect(mockObj.push
-          .withArgs({
-            tag: testTag
-          })
-          .calledOnce).to.be.true();
+        sinon.assert.calledOnce(Dockerode.prototype.getImage);
+        sinon.assert.calledWithExactly(
+          Dockerode.prototype.getImage,
+          testImageName
+        );
+        sinon.assert.calledOnce(mockObj.push);
+        sinon.assert.calledWithExactly(
+          mockObj.push,
+          { tag: testTag },
+          sinon.match.func
+        );
         done();
       });
     });
 
-    it('should cb error', function (done) {
-      var testErr = 'sauron attacks';
-      mockObj.push.yieldsAsync(testErr);
-      model.pushImage(testImage, function (err) {
-        expect(err).to.be.equal(testErr);
+    describe('errors', function () {
+      beforeEach(function (done) {
+        sinon.stub(ErrorCat.prototype, 'createAndReport');
         done();
       });
+      afterEach(function (done) {
+        ErrorCat.prototype.createAndReport.restore();
+        done();
+      });
+
+      it('should cb error if push errors', function (done) {
+        var testErr = 'sauron attacks';
+        mockObj.push.yieldsAsync(testErr);
+        model.pushImage(testImage, function (err) {
+          expect(err).to.be.equal(testErr);
+          done();
+        });
+      });
+
+      it('should report the error w/ error cat (defaults)', function (done) {
+        var error = new Error();
+        mockObj.push.yieldsAsync(error);
+        model.pushImage(testImage, function (err) {
+          expect(err).to.equal(error);
+          sinon.assert.calledOnce(ErrorCat.prototype.createAndReport);
+          sinon.assert.calledWithExactly(
+            ErrorCat.prototype.createAndReport,
+            500,
+            'Image failed to push.',
+            sinon.match.has('imageId', testImage)
+          );
+          done();
+        });
+      });
+
+      it('should report the error w/ error cat (dockerode)', function (done) {
+        var error = new Error('foobar');
+        error.statusCode = 404;
+        error.message = 'barbaz';
+        mockObj.push.yieldsAsync(error);
+        model.pushImage(testImage, function (err) {
+          expect(err).to.equal(error);
+          sinon.assert.calledOnce(ErrorCat.prototype.createAndReport);
+          sinon.assert.calledWithExactly(
+            ErrorCat.prototype.createAndReport,
+            404,
+            'barbaz',
+            sinon.match.has('imageId', testImage)
+          );
+          done();
+        });
+      });
     });
+
   }); // end pushImage
 }); // end ImageDelivery
