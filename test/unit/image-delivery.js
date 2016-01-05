@@ -131,7 +131,7 @@ describe('ImageDelivery unit test', function () {
             sinon.match.has('imageId', testImage)
           );
           done();
-        })
+        });
       });
 
       it('should report progress errors (error objects)', function (done) {
@@ -150,7 +150,7 @@ describe('ImageDelivery unit test', function () {
             sinon.match.has('imageId', testImage)
           );
           done();
-        })
+        });
       });
     });
   }); // end pushImage
