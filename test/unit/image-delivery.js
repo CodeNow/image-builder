@@ -65,7 +65,7 @@ describe('ImageDelivery unit test', function () {
 
     describe('errors', function () {
       beforeEach(function (done) {
-        sinon.stub(ErrorCat.prototype, 'createAndReport');
+        sinon.spy(ErrorCat.prototype, 'createAndReport');
         done();
       });
       afterEach(function (done) {
@@ -91,7 +91,7 @@ describe('ImageDelivery unit test', function () {
           sinon.assert.calledWithExactly(
             ErrorCat.prototype.createAndReport,
             500,
-            'Image failed to push.',
+            'Image failed to start push.',
             sinon.match.has('imageId', testImage)
           );
           done();
@@ -115,7 +115,43 @@ describe('ImageDelivery unit test', function () {
           done();
         });
       });
-    });
 
+      it('should report progress errors (string)', function (done) {
+        var error = 'this is an error';
+        mockObj.push.yieldsAsync();
+        model.docker.modem.followProgress.callsArgWithAsync(1, error);
+        model.pushImage(testImage, function (err) {
+          expect(err).to.exist();
+          expect(err.message).to.equal(error);
+          sinon.assert.calledOnce(ErrorCat.prototype.createAndReport);
+          sinon.assert.calledWithExactly(
+            ErrorCat.prototype.createAndReport,
+            502,
+            error,
+            sinon.match.has('imageId', testImage)
+          );
+          done();
+        })
+      });
+
+      it('should report progress errors (error objects)', function (done) {
+        var error = new Error('this is an error');
+        error.statusCode = 508;
+        mockObj.push.yieldsAsync();
+        model.docker.modem.followProgress.callsArgWithAsync(1, error);
+        model.pushImage(testImage, function (err) {
+          expect(err).to.equal(error);
+          expect(err.message).to.equal('this is an error');
+          sinon.assert.calledOnce(ErrorCat.prototype.createAndReport);
+          sinon.assert.calledWithExactly(
+            ErrorCat.prototype.createAndReport,
+            508,
+            'this is an error',
+            sinon.match.has('imageId', testImage)
+          );
+          done();
+        })
+      });
+    });
   }); // end pushImage
 }); // end ImageDelivery
