@@ -79,7 +79,6 @@ describe('ImageDelivery unit test', function () {
         var testErr = 'sauron attacks';
         mockObj.push.yieldsAsync(testErr);
         model.pushImage(testImage, function (err) {
-          console.error('huh', err)
           expect(err.output.statusCode).to.equal(500);
           expect(err.message).to.equal('Image failed to start push.');
           expect(err.data.err).to.be.equal(testErr);
