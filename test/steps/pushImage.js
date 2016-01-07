@@ -52,14 +52,15 @@ lab.experiment('pushImage', function () {
     lab.test('should push image', function (done) {
       steps.pushImage(function (err) {
         expect(err).to.be.undefined();
-        expect(childProcess.exec
-          .calledWith('docker --host http://fake.host:4242 run -d ' +
-            '--label="type=imagePush" --restart=on-failure:5 ' +
-            '-e "RUNNABLE_DOCKER=http://fake.host:4242" ' +
-            '-e "RUNNABLE_DOCKERTAG=registry.runnable.com/111/222:333" ' +
-            '-e NODE_ENV=test' +
-            ' builder:1738 node ./lib/push-image.js'))
-          .to.be.true();
+        sinon.assert.calledWith(
+          childProcess.exec,
+          'docker --host http://fake.host:4242 run -d ' +
+          '--label="type=imagePush" --restart=on-failure:5 ' +
+          '-e "RUNNABLE_DOCKER=http://fake.host:4242" ' +
+          '-e "RUNNABLE_DOCKERTAG=registry.runnable.com/111/222:333" ' +
+          '-e NODE_ENV=test' +
+          ' builder:1738 node ./lib/push-image.js'
+        )
         done();
       });
     });
