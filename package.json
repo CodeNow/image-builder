@@ -12,6 +12,7 @@
     "aws-sdk": "^2.2.9",
     "colors": "^1.0.3",
     "dockerode": "^2.2.3",
+    "error-cat": "^1.4.0",
     "escape-regex-string": "^1.0.4",
     "fs-transform": "^3.2.4",
     "lockfile": "^1.0.0",
