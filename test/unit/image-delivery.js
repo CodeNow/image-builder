@@ -66,10 +66,12 @@ describe('ImageDelivery unit test', function () {
     describe('errors', function () {
       beforeEach(function (done) {
         sinon.spy(ErrorCat.prototype, 'createAndReport');
+        sinon.stub(ErrorCat.prototype, 'report').yieldsAsync();
         done();
       });
       afterEach(function (done) {
         ErrorCat.prototype.createAndReport.restore();
+        ErrorCat.prototype.report.restore();
         done();
       });
 
@@ -77,7 +79,9 @@ describe('ImageDelivery unit test', function () {
         var testErr = 'sauron attacks';
         mockObj.push.yieldsAsync(testErr);
         model.pushImage(testImage, function (err) {
-          expect(err).to.be.equal(testErr);
+          expect(err.output.statusCode).to.equal(500);
+          expect(err.message).to.equal('Image failed to start push.');
+          expect(err.data.err).to.be.equal(testErr);
           done();
         });
       });
@@ -86,31 +90,32 @@ describe('ImageDelivery unit test', function () {
         var error = new Error();
         mockObj.push.yieldsAsync(error);
         model.pushImage(testImage, function (err) {
-          expect(err).to.equal(error);
+          expect(err.message).to.equal('Image failed to start push.');
           sinon.assert.calledOnce(ErrorCat.prototype.createAndReport);
           sinon.assert.calledWithExactly(
             ErrorCat.prototype.createAndReport,
             500,
             'Image failed to start push.',
-            sinon.match.has('imageId', testImage)
+            sinon.match.has('imageId', testImage),
+            sinon.match.func
           );
           done();
         });
       });
 
       it('should report the error w/ error cat (dockerode)', function (done) {
-        var error = new Error('foobar');
+        var error = new Error('barbaz');
         error.statusCode = 404;
-        error.message = 'barbaz';
         mockObj.push.yieldsAsync(error);
         model.pushImage(testImage, function (err) {
-          expect(err).to.equal(error);
+          expect(err.message).to.equal('barbaz');
           sinon.assert.calledOnce(ErrorCat.prototype.createAndReport);
           sinon.assert.calledWithExactly(
             ErrorCat.prototype.createAndReport,
             404,
             'barbaz',
-            sinon.match.has('imageId', testImage)
+            sinon.match.has('imageId', testImage),
+            sinon.match.func
           );
           done();
         });
@@ -128,7 +133,8 @@ describe('ImageDelivery unit test', function () {
             ErrorCat.prototype.createAndReport,
             502,
             error,
-            sinon.match.has('imageId', testImage)
+            sinon.match.has('imageId', testImage),
+            sinon.match.func
           );
           done();
         });
@@ -140,14 +146,15 @@ describe('ImageDelivery unit test', function () {
         mockObj.push.yieldsAsync();
         model.docker.modem.followProgress.callsArgWithAsync(1, error);
         model.pushImage(testImage, function (err) {
-          expect(err).to.equal(error);
+          expect(err).to.exist();
           expect(err.message).to.equal('this is an error');
           sinon.assert.calledOnce(ErrorCat.prototype.createAndReport);
           sinon.assert.calledWithExactly(
             ErrorCat.prototype.createAndReport,
             508,
             'this is an error',
-            sinon.match.has('imageId', testImage)
+            sinon.match.has('imageId', testImage),
+            sinon.match.func
           );
           done();
         });
