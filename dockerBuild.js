@@ -33,6 +33,11 @@ async.series([
   function (err) {
     var msgPrefix = 'Runnable: ';
     if (err) {
+      if (err.message === 'build timeout') {
+        utils.error(colors.red.bold(msgPrefix + err.message));
+        return process.exit(124);
+      }
+
       if (!err.noLog) {
        var message = 'Hit an unexpected error: ' +
           err.message ? err.message : 'unknown';

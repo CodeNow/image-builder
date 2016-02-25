@@ -176,16 +176,20 @@ describe('build.js unit test', function () {
   });
 
   describe('_handleBuild', function () {
+    var clock
     beforeEach(function (done) {
+      clock = sinon.useFakeTimers();
       ctx.builder = new Builder(defaultOps);
       sinon.stub(ctx.builder, 'saveToLogs', function (cb) {
         return cb;
       });
+
       done();
     });
 
     afterEach(function (done) {
       ctx.builder.saveToLogs.restore();
+      clock.restore()
       done();
     });
 
@@ -232,6 +236,58 @@ describe('build.js unit test', function () {
 
       // start handling stuff (count.next here is the exit event)
       ctx.builder._handleBuild(dataStream, count);
+    });
+
+    it('should callback error on build timeout', function (done) {
+      process.env.RUNNABLE_BUILD_LINE_TIMEOUT_MS = 10;
+      var dataStream = new stream.PassThrough();
+      sinon.stub(dataStream, 'removeAllListeners').returns();
+      sinon.stub(dataStream, 'end').returns();
+      sinon.stub(ctx.builder, '_handleBuildData').returns();
+      sinon.stub(ctx.builder.docker.modem, 'followProgress',
+        function (s, f, p) {
+          p('data');
+        });
+
+      ctx.builder._handleBuild(dataStream, function (err) {
+        sinon.assert.calledOnce(ctx.builder._handleBuildData);
+        sinon.assert.calledWith(ctx.builder._handleBuildData, 'data');
+        sinon.assert.calledOnce(dataStream.removeAllListeners);
+        sinon.assert.calledOnce(dataStream.end);
+
+        expect(err.message).to.equal('build timeout');
+        ctx.builder._handleBuildData.restore();
+        ctx.builder.docker.modem.followProgress.restore();
+        done();
+      });
+      // cause timeout
+      clock.tick(100);
+    });
+
+    it('should not timeout if not defined', function (done) {
+      delete process.env.RUNNABLE_BUILD_LINE_TIMEOUT_MS;
+      var dataStream = new stream.PassThrough();
+      sinon.stub(dataStream, 'removeAllListeners').returns();
+      sinon.stub(dataStream, 'end').returns();
+      sinon.stub(ctx.builder, '_handleBuildData').returns();
+      sinon.stub(ctx.builder.docker.modem, 'followProgress',
+        function (s, f, p) {
+          p('data');
+        });
+
+      ctx.builder._handleBuild(dataStream, function (err) {
+        if (err) { return done(err); }
+      });
+
+      clock.tick(100);
+
+      sinon.assert.calledOnce(ctx.builder._handleBuildData);
+      sinon.assert.calledWith(ctx.builder._handleBuildData, 'data');
+      sinon.assert.notCalled(dataStream.removeAllListeners);
+      sinon.assert.notCalled(dataStream.end);
+      ctx.builder._handleBuildData.restore();
+      ctx.builder.docker.modem.followProgress.restore();
+      done();
     });
   });
 
