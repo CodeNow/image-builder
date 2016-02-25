@@ -176,7 +176,7 @@ describe('build.js unit test', function () {
   });
 
   describe('_handleBuild', function () {
-    var clock
+    var clock;
     beforeEach(function (done) {
       clock = sinon.useFakeTimers();
       ctx.builder = new Builder(defaultOps);
@@ -189,7 +189,7 @@ describe('build.js unit test', function () {
 
     afterEach(function (done) {
       ctx.builder.saveToLogs.restore();
-      clock.restore()
+      clock.restore();
       done();
     });
 
