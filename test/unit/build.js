@@ -242,7 +242,6 @@ describe('build.js unit test', function () {
       process.env.RUNNABLE_BUILD_LINE_TIMEOUT_MS = 10;
       var dataStream = new stream.PassThrough();
       sinon.stub(dataStream, 'removeAllListeners').returns();
-      sinon.stub(dataStream, 'end').returns();
       sinon.stub(ctx.builder, '_handleBuildData').returns();
       sinon.stub(ctx.builder.docker.modem, 'followProgress',
         function (s, f, p) {
@@ -253,7 +252,6 @@ describe('build.js unit test', function () {
         sinon.assert.calledOnce(ctx.builder._handleBuildData);
         sinon.assert.calledWith(ctx.builder._handleBuildData, 'data');
         sinon.assert.calledOnce(dataStream.removeAllListeners);
-        sinon.assert.calledOnce(dataStream.end);
 
         expect(err.message).to.equal('build timeout');
         ctx.builder._handleBuildData.restore();
