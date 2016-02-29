@@ -28,5 +28,5 @@ docker run \
   test-image-builder
 
 # should exit successfully
-exit_code=`docker wait $(docker ps -a -n=1 --no-trunc | grep -v 'CONTAINER' | awk '{print $1}')`
+exit_code=`docker wait $(docker ps -a -n=2 --no-trunc | grep -m1 'test-image-builder' | awk '{print $1}')`
 test "$exit_code" = "0" || (echo "should have exit code 0 " && false)

@@ -6,7 +6,7 @@ rm -rf test-* scripts/test-*.log
 echo "Running Tests:"
 
 num_tests=$(ls scripts/test-circle-* | wc -l)
-for i in ./scripts/test-circle-16.sh; do
+for i in $(ls scripts/test-circle-*); do
   echo -n "$i of $num_tests... "
   start=$(date +"%s")
   $i > "$i".log 2>&1
