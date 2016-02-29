@@ -57,17 +57,17 @@ lab.experiment('getRepositories', function () {
         // no lock, so it returns true
         sinon.stub(lockfile, 'lock').yields(null, true);
         sinon.stub(lockfile, 'unlock').yields(null);
-        sinon.stub(childProcess, 'exec')
+        sinon.stub(childProcess, 'execFile')
           .yields(null, new Buffer(''), new Buffer(''));
         steps.getRepositories(function (err) {
           if (err) { return done(err); }
-          expect(childProcess.exec.calledWithMatch(/git clone \-q .+/))
+          expect(childProcess.execFile.calledWithMatch('git', ['clone', '-q', sinon.match.string]))
             .to.be.true();
-          expect(childProcess.exec.calledWithMatch(/git checkout .+/))
+          expect(childProcess.execFile.calledWithMatch('git', ['checkout', sinon.match.string]))
             .to.be.true();
-          expect(childProcess.exec.calledWithMatch(/cp .+/))
+          expect(childProcess.execFile.calledWithMatch('cp'))
             .to.be.true();
-          childProcess.exec.restore();
+          childProcess.execFile.restore();
           expect(lockfile.lock.calledOnce).to.be.true();
           expect(lockfile.unlock.calledOnce).to.be.true();
           lockfile.lock.restore();
@@ -101,20 +101,20 @@ lab.experiment('getRepositories', function () {
         // cannot get the lock => false
         sinon.stub(lockfile, 'lock').yields(new Error());
         sinon.stub(lockfile, 'unlock').yields();
-        sinon.stub(childProcess, 'exec')
+        sinon.stub(childProcess, 'execFile')
           .yields(null, new Buffer(''), new Buffer(''));
         steps.getRepositories(function (err) {
           if (err) { return done(err); }
-          expect(childProcess.exec.calledWithMatch(/git clone \-q .+/))
+          expect(childProcess.execFile.calledWithMatch('git', ['clone', '-q', sinon.match.string]))
             .to.be.true();
-          expect(childProcess.exec.calledWithMatch(/git checkout .+/))
+          expect(childProcess.execFile.calledWithMatch('git', ['checkout', sinon.match.string]))
             .to.be.true();
-          expect(childProcess.exec.calledWithMatch(/cp .+/)).to.be.false();
+          expect(childProcess.execFile.calledWithMatch('cp')).to.be.false();
           expect(lockfile.lock.calledOnce).to.be.true();
           expect(lockfile.unlock.called).to.be.false();
           lockfile.lock.restore();
           lockfile.unlock.restore();
-          childProcess.exec.restore();
+          childProcess.execFile.restore();
           done();
         });
       });
@@ -129,21 +129,21 @@ lab.experiment('getRepositories', function () {
         sinon.stub(lockfile, 'lock').yields(null);
         sinon.stub(lockfile, 'unlock').yields(null);
         sinon.stub(fs, 'existsSync').withArgs(repoGitDir).returns(true);
-        sinon.stub(childProcess, 'exec')
+        sinon.stub(childProcess, 'execFile')
           .yields(null, new Buffer(''), new Buffer(''));
         steps.getRepositories(function (err) {
           if (err) { return done(err); }
           expect(fs.existsSync.calledWithExactly(repoGitDir)).to.be.true();
-          expect(childProcess.exec.calledWithMatch(/git clone \-q .+/))
+          expect(childProcess.execFile.calledWithMatch('git', ['clone', '-q', sinon.match.string]))
             .to.be.false();
-          expect(childProcess.exec.calledWithMatch(/git fetch --all/))
+          expect(childProcess.execFile.calledWithMatch('git', ['fetch', '--all']))
             .to.be.true();
-          expect(childProcess.exec.calledWithMatch(/cp .+/)).to.be.true();
+          expect(childProcess.execFile.calledWithMatch('cp')).to.be.true();
           expect(lockfile.lock.calledOnce).to.be.true();
           lockfile.lock.restore();
           lockfile.unlock.restore();
           fs.existsSync.restore();
-          childProcess.exec.restore();
+          childProcess.execFile.restore();
           done();
         });
       });
@@ -157,25 +157,29 @@ lab.experiment('getRepositories', function () {
           sinon.stub(lockfile, 'lock').yields(null);
           sinon.stub(lockfile, 'unlock').yields(null);
           sinon.stub(fs, 'existsSync').withArgs(repoGitDir).returns(true);
-          sinon.stub(childProcess, 'exec')
-            .withArgs('git rev-parse HEAD')
+          sinon.stub(childProcess, 'execFile')
+            .withArgs('git', ['rev-parse', 'HEAD'])
             .yields(
               null,
               new Buffer('04d07787dd44b4f2167e26532e95471871a9b233'),
               new Buffer(''));
-          childProcess.exec.yields(null, new Buffer(''), new Buffer(''));
+          sinon.stub(childProcess, 'execFile')
+            .yields(null, new Buffer(''), new Buffer(''));
           steps.getRepositories(function (err) {
             if (err) { return done(err); }
-            expect(childProcess.exec.calledWith('git fetch --all'))
+            expect(childProcess.execFile.calledWith('git', ['fetch', '--all']))
               .to.be.true();
             expect(
-              childProcess.exec.calledWith('git checkout -q ' +
-                '34a728c59e713b7fbf5b0d6ed3a8e4f4e2c695c5'))
+              childProcess.execFile.calledWith('git', [
+                'checkout',
+                '-q ',
+                '34a728c59e713b7fbf5b0d6ed3a8e4f4e2c695c5'
+              ]))
               .to.be.true();
             lockfile.lock.restore();
             lockfile.unlock.restore();
             fs.existsSync.restore();
-            childProcess.exec.restore();
+            childProcess.execFile.restore();
             done();
           });
         });
@@ -206,8 +210,8 @@ lab.experiment('getRepositories', function () {
 
     lab.experiment('to make sure the cache directory exists', function () {
       lab.beforeEach(function (done) {
-        sinon.stub(childProcess, 'exec')
-          .withArgs('mkdir -p /tmp/cache')
+        sinon.stub(childProcess, 'execFile')
+          .withArgs('mkdir', ['-p', '/tmp/cache'])
           .callsArgWith(
             1,
             new Error('Command failed'),
@@ -216,7 +220,7 @@ lab.experiment('getRepositories', function () {
         done();
       });
       lab.afterEach(function (done) {
-        childProcess.exec.restore();
+        childProcess.execFile.restore();
         done();
       });
 
@@ -231,19 +235,19 @@ lab.experiment('getRepositories', function () {
 
     lab.experiment('to remove all the ssh keys from agent', function () {
       lab.beforeEach(function (done) {
-        sinon.stub(childProcess, 'exec');
-        childProcess.exec
-          .withArgs('ssh-add -D')
+        sinon.stub(childProcess, 'execFile');
+        childProcess.execFile
+          .withArgs('ssh-add', ['-D'])
           .callsArgWith(
             1,
             new Error('Command failed'),
             '',
             '');
-        childProcess.exec.yields(null, '', '');
+        childProcess.execFile.yields(null, '', '');
         done();
       });
       lab.afterEach(function (done) {
-        childProcess.exec.restore();
+        childProcess.execFile.restore();
         done();
       });
 
@@ -258,19 +262,19 @@ lab.experiment('getRepositories', function () {
 
     lab.experiment('to make the lock file directory', function () {
       lab.beforeEach(function (done) {
-        sinon.stub(childProcess, 'exec');
-        childProcess.exec
-          .withArgs('mkdir -p /tmp/cache/bkendall')
+        sinon.stub(childProcess, 'execFile');
+        childProcess.execFile
+          .withArgs('mkdir', ['-p', '/tmp/cache/bkendall'])
           .callsArgWith(
             1,
             new Error('Command failed'),
             '',
             '');
-        childProcess.exec.yields(null, '', '');
+        childProcess.execFile.yields(null, '', '');
         done();
       });
       lab.afterEach(function (done) {
-        childProcess.exec.restore();
+        childProcess.execFile.restore();
         done();
       });
 
@@ -285,7 +289,7 @@ lab.experiment('getRepositories', function () {
 
     lab.experiment('to release the lock', function () {
       lab.it('returns an error', function (done) {
-        sinon.stub(childProcess, 'exec')
+        sinon.stub(childProcess, 'execFile')
           .yields(null, new Buffer(''), new Buffer(''));
         sinon.stub(lockfile, 'lock').yields(null);
         sinon.stub(lockfile, 'unlock').yields(new Error('could not unlock'));
@@ -294,7 +298,7 @@ lab.experiment('getRepositories', function () {
           expect(err.message).to.match(/could not unlock/);
           // should have tried to unlock it twice
           expect(lockfile.unlock.callCount).to.equal(2);
-          childProcess.exec.restore();
+          childProcess.execFile.restore();
           lockfile.unlock.restore();
           lockfile.lock.restore();
           done();
