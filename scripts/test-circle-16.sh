@@ -27,8 +27,6 @@ docker run \
   -v `pwd`/test-"$test_num":/cache:rw  \
   test-image-builder | tee $build_log
 
-cat $build_log
-
 exit_code=`docker wait $(docker ps -a -n=2 --no-trunc | grep -m1 'test-image-builder' | awk '{print $1}')`
 test "$exit_code" = "124" || (echo "should have exit code 124 " && false)
 

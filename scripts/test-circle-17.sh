@@ -25,7 +25,7 @@ docker run \
   -e RUNNABLE_DOCKER_BUILDOPTIONS='' \
   -e RUNNABLE_BUILD_LINE_TIMEOUT_MS=999999999 \
   -v `pwd`/test-"$test_num":/cache:rw  \
-  test-image-builder
+  test-image-builder | tee $build_log
 
 # should exit successfully
 grep -vqE "Runnable: Build completed successfully" "$build_log" || (echo "should have printed Runnable: Build completed successfully" && false)
