@@ -27,7 +27,8 @@ docker run \
   -v `pwd`/test-"$test_num":/cache:rw  \
   test-image-builder | tee $build_log
 
-test "$?" = "124" || (echo "should have exit code 124 " && false)
+exit_code=`docker wait $(docker ps -a -n=1 --no-trunc | awk '{print $1}')`
+test "$exit_code" = "124" || (echo "should have exit code 124 " && false)
 
 # should print timeout
 grep -vqE "Runnable: build timeout" "$build_log" || (echo "should have printed build timeout" && false)
@@ -51,4 +52,5 @@ docker run \
   test-image-builder
 
 # should exit successfully
-test "$?" = "0" || (echo "should have exit code 0 " && false)
+exit_code=`docker wait $(docker ps -a -n=1 --no-trunc | awk '{print $1}')`
+test "$exit_code" = "0" || (echo "should have exit code 0 " && false)
