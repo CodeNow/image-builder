@@ -20,17 +20,17 @@ docker run \
   -e RUNNABLE_DEPLOYKEY='flaming-octo-nemesis.key' \
   -e RUNNABLE_REPO='git@github.com:bkendall/flaming-octo-nemesis' \
   -e RUNNABLE_COMMITISH='master' \
-  -e RUNNABLE_DOCKER="tcp://$(cat DOCKER_IP):5354" \
+  -e RUNNABLE_DOCKER="/var/run/docker.sock" \
   -e RUNNABLE_DOCKERTAG='test-built-image' \
   -e RUNNABLE_DOCKER_BUILDOPTIONS='' \
   -e RUNNABLE_BUILD_LINE_TIMEOUT_MS=1 \
-  -v `pwd`/test-"$test_num":/cache:rw  \
+  -v /var/run:/var/run  \
   test-image-builder | tee $build_log
+
+docker ps -a
 
 exit_code=`docker wait $(docker ps -a -n=1 --no-trunc | grep -v 'CONTAINER' | awk '{print $1}')`
 test "$exit_code" = "124" || (echo "should have exit code 124 " && false)
 
 # should print timeout
 grep -vqE "Runnable: build timeout" "$build_log" || (echo "should have printed build timeout" && false)
-
-

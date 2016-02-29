@@ -8,6 +8,7 @@ full_repo="bkendall/flaming-octo-nemesis"
 mkdir -p ./test-"$test_num"/"$full_repo"
 
 build_log=$(mktemp /tmp/log.XXXX)
+
 # build should not timeout
 docker run \
   -e RUNNABLE_AWS_ACCESS_KEY="$AWS_ACCESS_KEY" \
