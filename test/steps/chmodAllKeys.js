@@ -51,25 +51,25 @@ lab.experiment('chmodAllKeys', function () {
   lab.beforeEach(steps.makeWorkingFolders.bind(steps));
 
   lab.experiment('succeeds', function () {
-    // provide options to check that exec was called
+    // provide options to check that execFile was called
     lab.beforeEach(function (done) {
-      sinon.spy(childProcess, 'exec');
+      sinon.spy(childProcess, 'execFile');
       done();
     });
     lab.afterEach(function (done) {
-      childProcess.exec.restore();
+      childProcess.execFile.restore();
       done();
     });
 
     lab.experiment('when there are keys', function () {
       lab.beforeEach({ timeout: 5000 }, steps.downloadDeployKeys.bind(steps));
-      lab.beforeEach(function (done) { childProcess.exec.reset(); done(); });
+      lab.beforeEach(function (done) { childProcess.execFile.reset(); done(); });
 
       lab.test('to set the permissions on the keys', function (done) {
         steps.chmodAllKeys(function (err) {
           if (err) { return done(err); }
-          expect(childProcess.exec.calledOnce).to.be.true();
-          expect(childProcess.exec.calledWith('chmod -R 600 *')).to.be.true();
+          expect(childProcess.execFile.calledOnce).to.be.true();
+          expect(childProcess.execFile.calledWith('chmod', ['-R', '600', '*'])).to.be.true();
           var keyPath = path.join(
             steps.dirs.keyDirectory,
             requiredEnvVars.RUNNABLE_DEPLOYKEY);
@@ -93,12 +93,12 @@ lab.experiment('chmodAllKeys', function () {
         process.env.RUNNABLE_DEPLOYKEY = oldDeployKey;
         done();
       });
-      lab.beforeEach(function (done) { childProcess.exec.reset(); done(); });
+      lab.beforeEach(function (done) { childProcess.execFile.reset(); done(); });
 
       lab.test('to just move on', function (done) {
         steps.chmodAllKeys(function (err) {
           if (err) { return done(err); }
-          expect(childProcess.exec.callCount).to.equal(0);
+          expect(childProcess.execFile.callCount).to.equal(0);
           done();
         });
       });
@@ -108,9 +108,9 @@ lab.experiment('chmodAllKeys', function () {
   lab.experiment('fails', function () {
     lab.beforeEach({ timeout: 5000 }, steps.downloadDeployKeys.bind(steps));
 
-    lab.experiment('when the exec call fails', function () {
+    lab.experiment('when the execFile call fails', function () {
       lab.beforeEach(function (done) {
-        sinon.stub(childProcess, 'exec', function () {
+        sinon.stub(childProcess, 'execFile', function () {
           var cb = Array.prototype.slice.call(arguments).pop();
           cb(
             new Error('Command failed'),
@@ -120,13 +120,13 @@ lab.experiment('chmodAllKeys', function () {
         done();
       });
       lab.afterEach(function (done) {
-        childProcess.exec.restore();
+        childProcess.execFile.restore();
         done();
       });
 
       lab.it('should return an error', function (done) {
         steps.chmodAllKeys(function (err) {
-          expect(require('child_process').exec.calledOnce).to.be.true();
+          expect(require('child_process').execFile.calledOnce).to.be.true();
           expect(err).to.exist();
           done();
         });

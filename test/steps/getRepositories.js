@@ -61,9 +61,11 @@ lab.experiment('getRepositories', function () {
           .yields(null, new Buffer(''), new Buffer(''));
         steps.getRepositories(function (err) {
           if (err) { return done(err); }
-          expect(childProcess.execFile.calledWithMatch('git', ['clone', '-q', sinon.match.string]))
+          expect(childProcess.execFile.calledWithMatch('git',
+            ['clone', '-q', sinon.match.string]))
             .to.be.true();
-          expect(childProcess.execFile.calledWithMatch('git', ['checkout', sinon.match.string]))
+          expect(childProcess.execFile.calledWithMatch('git',
+            ['checkout', sinon.match.string]))
             .to.be.true();
           expect(childProcess.execFile.calledWithMatch('cp'))
             .to.be.true();
@@ -105,9 +107,11 @@ lab.experiment('getRepositories', function () {
           .yields(null, new Buffer(''), new Buffer(''));
         steps.getRepositories(function (err) {
           if (err) { return done(err); }
-          expect(childProcess.execFile.calledWithMatch('git', ['clone', '-q', sinon.match.string]))
+          expect(childProcess.execFile.calledWithMatch('git',
+            ['clone', '-q', sinon.match.string]))
             .to.be.true();
-          expect(childProcess.execFile.calledWithMatch('git', ['checkout', sinon.match.string]))
+          expect(childProcess.execFile.calledWithMatch('git',
+            ['checkout', sinon.match.string]))
             .to.be.true();
           expect(childProcess.execFile.calledWithMatch('cp')).to.be.false();
           expect(lockfile.lock.calledOnce).to.be.true();
@@ -134,9 +138,11 @@ lab.experiment('getRepositories', function () {
         steps.getRepositories(function (err) {
           if (err) { return done(err); }
           expect(fs.existsSync.calledWithExactly(repoGitDir)).to.be.true();
-          expect(childProcess.execFile.calledWithMatch('git', ['clone', '-q', sinon.match.string]))
+          expect(childProcess.execFile.calledWithMatch('git',
+            ['clone', '-q', sinon.match.string]))
             .to.be.false();
-          expect(childProcess.execFile.calledWithMatch('git', ['fetch', '--all']))
+          expect(childProcess.execFile.calledWithMatch('git',
+            ['fetch', '--all']))
             .to.be.true();
           expect(childProcess.execFile.calledWithMatch('cp')).to.be.true();
           expect(lockfile.lock.calledOnce).to.be.true();
@@ -167,7 +173,8 @@ lab.experiment('getRepositories', function () {
             .yields(null, new Buffer(''), new Buffer(''));
           steps.getRepositories(function (err) {
             if (err) { return done(err); }
-            expect(childProcess.execFile.calledWith('git', ['fetch', '--all']))
+            expect(childProcess.execFile.calledWith('git',
+              ['fetch', '--all']))
               .to.be.true();
             expect(
               childProcess.execFile.calledWith('git', [
