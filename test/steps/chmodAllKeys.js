@@ -42,7 +42,7 @@ lab.experiment('chmodAllKeys', function () {
           sinon.assert.calledOnce(childProcess.exec)
           sinon.assert.calledWith(
             childProcess.exec,
-            'chmod', '-R 600 *'
+            'chmod -R 600 *'
           );
           done();
         });
