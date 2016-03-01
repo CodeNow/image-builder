@@ -15,8 +15,5 @@ test:
     - mkdir -p /tmp/layer-cache
   override:
     - npm run lint
-    - npm test:
-        environment:
-          CACHE_DIR: /tmp/cache
-          LAYER_CACHE_DIR: /tmp/layer-cache
+    - npm test
     - ./scripts/run-tests.sh
