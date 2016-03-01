@@ -24,13 +24,13 @@ lab.experiment('chmodAllKeys', function () {
     sinon.stub(steps, 'saveToLogs', function (cb) {
       return function (err, stdout, stderr) { cb(err, stdout, stderr); }
     });
-    sinon.stub(childProcess, 'execFile').yieldsAsync(null);
+    sinon.stub(childProcess, 'exec').yieldsAsync(null);
     done();
   });
 
   lab.afterEach(function (done) {
     steps.saveToLogs.restore();
-    childProcess.execFile.restore();
+    childProcess.exec.restore();
     done();
   })
 
@@ -39,11 +39,10 @@ lab.experiment('chmodAllKeys', function () {
       lab.test('to set the permissions on the keys', function (done) {
         steps.chmodAllKeys(function (err) {
           if (err) { return done(err); }
-          sinon.assert.calledOnce(childProcess.execFile)
+          sinon.assert.calledOnce(childProcess.exec)
           sinon.assert.calledWith(
-            childProcess.execFile,
-            'chmod',
-            [ '-R', '600', '*' ]
+            childProcess.exec,
+            'chmod', '-R 600 *'
           );
           done();
         });
@@ -65,7 +64,7 @@ lab.experiment('chmodAllKeys', function () {
       lab.test('to just move on', function (done) {
         steps.chmodAllKeys(function (err) {
           if (err) { return done(err); }
-          sinon.assert.notCalled(childProcess.execFile);
+          sinon.assert.notCalled(childProcess.exec);
           done();
         });
       });
@@ -73,9 +72,9 @@ lab.experiment('chmodAllKeys', function () {
   });
 
   lab.experiment('fails', function () {
-    lab.experiment('when the execFile call fails', function () {
+    lab.experiment('when the exec call fails', function () {
       lab.beforeEach(function (done) {
-        childProcess.execFile.yieldsAsync(
+        childProcess.exec.yieldsAsync(
           new Error('Command failed'),
           '',
           'chmod: cannot access ‘*’: No such file or directory\n'
@@ -86,7 +85,7 @@ lab.experiment('chmodAllKeys', function () {
       lab.it('should return an error', function (done) {
         steps.chmodAllKeys(function (err) {
           expect(err).to.exist();
-          sinon.assert.calledOnce(childProcess.execFile);
+          sinon.assert.calledOnce(childProcess.exec);
           done();
         });
       });
