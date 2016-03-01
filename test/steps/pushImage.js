@@ -70,7 +70,7 @@ lab.experiment('pushImage', function () {
             'RUNNABLE_DOCKERTAG=registry.runnable.com/111/222:333',
             '-e',
             'NODE_ENV=test',
-            '1738',
+            'builder:1738',
             'node',
             './lib/push-image.js'
           ]
