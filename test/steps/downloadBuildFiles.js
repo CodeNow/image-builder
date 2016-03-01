@@ -4,7 +4,6 @@ var Lab = require('lab');
 var lab = exports.lab = Lab.script();
 var expect = require('code').expect;
 
-var path = require('path');
 var sinon = require('sinon');
 var childProcess = require('child_process');
 
@@ -21,11 +20,12 @@ lab.experiment('downloadBuildFiles', function () {
     Object.keys(requiredEnvVars).forEach(function (key) {
       process.env[key] = requiredEnvVars[key];
     });
-    sinon.stub(childProcess, 'execFile').yieldsAsync(null, new Buffer(''), new Buffer(''))
-    steps.dirs = {}
+    sinon.stub(childProcess, 'execFile')
+      .yieldsAsync(null, new Buffer(''), new Buffer(''));
+    steps.dirs = {};
     steps.dirs.dockerContext = '/tmp/rnnbl.XXXXXXXXXXXXXXXXXXXX';
     steps.dirs.keyDirectory = '/tmp/rnnbl.key.XXXXXXXXXXXXXXXXXXXX';
-    steps.logs = {}
+    steps.logs = {};
     steps.logs.dockerBuild = '/tmp/rnnbl.log.XXXXXXXXXXXXXXXXXXXX';
     steps.logs.stdout = '/tmp/rnnbl.ib.stdout.XXXXXXXXXXXXXXXXXXXX';
     steps.logs.stderr = '/tmp/rnnbl.ib.stderr.XXXXXXXXXXXXXXXXXXXX';
@@ -33,9 +33,9 @@ lab.experiment('downloadBuildFiles', function () {
   });
 
   lab.afterEach(function (done) {
-    childProcess.execFile.restore()
+    childProcess.execFile.restore();
     done();
-  })
+  });
 
   lab.experiment('fails', function () {
     lab.beforeEach(function (done) {
@@ -66,7 +66,7 @@ lab.experiment('downloadBuildFiles', function () {
       lab.test('it should be fine', function (done) {
         steps.downloadBuildFiles(function (err) {
           if (err) { return done(err); }
-          sinon.assert.calledOnce(childProcess.execFile)
+          sinon.assert.calledOnce(childProcess.execFile);
           sinon.assert.calledWith(
             childProcess.execFile,
             'node',
@@ -81,7 +81,7 @@ lab.experiment('downloadBuildFiles', function () {
               '--dest',
               sinon.match.string
             ]
-          )
+          );
           done();
         });
       });
@@ -132,7 +132,7 @@ lab.experiment('downloadBuildFiles', function () {
       lab.test('to download the files', function (done) {
         steps.downloadBuildFiles(function (err) {
           if (err) { return done(err); }
-          sinon.assert.calledOnce(childProcess.execFile)
+          sinon.assert.calledOnce(childProcess.execFile);
           sinon.assert.calledWith(
             childProcess.execFile,
             'node',
@@ -147,7 +147,7 @@ lab.experiment('downloadBuildFiles', function () {
               '--dest',
               sinon.match.string
             ]
-          )
+          );
           done();
         });
       });

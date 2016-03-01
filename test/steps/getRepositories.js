@@ -24,10 +24,10 @@ lab.experiment('getRepositories', function () {
     Object.keys(requiredEnvVars).forEach(function (key) {
       process.env[key] = requiredEnvVars[key];
     });
-    steps.dirs = {}
+    steps.dirs = {};
     steps.dirs.dockerContext = '/tmp/rnnbl.XXXXXXXXXXXXXXXXXXXX';
     steps.dirs.keyDirectory = '/tmp/rnnbl.key.XXXXXXXXXXXXXXXXXXXX';
-    steps.logs = {}
+    steps.logs = {};
     steps.logs.dockerBuild = '/tmp/rnnbl.log.XXXXXXXXXXXXXXXXXXXX';
     steps.logs.stdout = '/tmp/rnnbl.ib.stdout.XXXXXXXXXXXXXXXXXXXX';
     steps.logs.stderr = '/tmp/rnnbl.ib.stderr.XXXXXXXXXXXXXXXXXXXX';
@@ -35,14 +35,19 @@ lab.experiment('getRepositories', function () {
   });
 
   lab.beforeEach(function (done) {
-    sinon.stub(childProcess, 'execFile').yields(null, new Buffer(''), new Buffer(''));
+    sinon.stub(childProcess, 'execFile')
+      .yields(null, new Buffer(''), new Buffer(''));
     sinon.stub(steps, 'saveToLogs', function (cb) {
       return function (err, stdout, stderr) {
-        cb(err, stdout ? stdout.toString() : '', stderr ? stderr.toString() : ''); }
+        cb(
+          err,
+          stdout ? stdout.toString() : '', stderr ? stderr.toString() : ''
+        );
+      };
     });
     sinon.stub(lockfile, 'lock').yields(null, true);
     sinon.stub(lockfile, 'unlock').yields(null);
-    done()
+    done();
   });
 
   lab.afterEach(function (done) {
@@ -50,15 +55,15 @@ lab.experiment('getRepositories', function () {
     steps.saveToLogs.restore();
     lockfile.lock.restore();
     lockfile.unlock.restore();
-    done()
-  })
+    done();
+  });
 
   lab.experiment('succeeds', function () {
     lab.experiment('when there is a repo', function () {
       lab.beforeEach(function (done) {
         childProcess.execFile.yieldsAsync(null, new Buffer(''), new Buffer(''));
-        done()
-      })
+        done();
+      });
 
       lab.test('to download the repo', function (done) {
         // no lock, so it returns true
@@ -93,9 +98,9 @@ lab.experiment('getRepositories', function () {
               sinon.match.string,
               sinon.match.string
             ]
-          )
-          sinon.assert.calledOnce(lockfile.lock)
-          sinon.assert.calledOnce(lockfile.unlock)
+          );
+          sinon.assert.calledOnce(lockfile.lock);
+          sinon.assert.calledOnce(lockfile.unlock);
           done();
         });
       });
@@ -125,7 +130,7 @@ lab.experiment('getRepositories', function () {
         // cannot get the lock => false
         lockfile.lock.yields(new Error());
         done();
-      })
+      });
 
       lab.test('to download the repo', function (done) {
         steps.getRepositories(function (err) {
@@ -139,7 +144,7 @@ lab.experiment('getRepositories', function () {
               sinon.match.string,
               sinon.match.string
             ]
-          )
+          );
           sinon.assert.calledWith(
             childProcess.execFile,
             'git',
@@ -148,7 +153,7 @@ lab.experiment('getRepositories', function () {
               '-q',
               sinon.match.string
             ]
-          )
+          );
           expect(childProcess.execFile.calledWithMatch('cp')).to.be.false();
           done();
         });
@@ -165,12 +170,12 @@ lab.experiment('getRepositories', function () {
         childProcess.execFile.yieldsAsync(null, new Buffer(''), new Buffer(''));
         sinon.stub(fs, 'existsSync').withArgs(repoGitDir).returns(true);
         done();
-      })
+      });
 
       lab.afterEach(function (done) {
         fs.existsSync.restore();
         done();
-      })
+      });
 
       lab.test('to still complete', function (done) {
         steps.getRepositories(function (err) {
@@ -197,7 +202,7 @@ lab.experiment('getRepositories', function () {
               new Buffer('04d07787dd44b4f2167e26532e95471871a9b233'),
               new Buffer(''));
           done();
-        })
+        });
 
         lab.test('to updated and complete', function (done) {
           steps.getRepositories(function (err) {
@@ -209,7 +214,7 @@ lab.experiment('getRepositories', function () {
                 'fetch',
                 '--all'
               ]
-            )
+            );
             sinon.assert.calledWith(
               childProcess.execFile,
               'git',
@@ -218,7 +223,7 @@ lab.experiment('getRepositories', function () {
                 '-q',
                 '34a728c59e713b7fbf5b0d6ed3a8e4f4e2c695c5'
               ]
-            )
+            );
             done();
           });
         });
@@ -301,7 +306,7 @@ lab.experiment('getRepositories', function () {
       lab.beforeEach(function (done) {
         lockfile.unlock.yields(new Error('could not unlock'));
         done();
-      })
+      });
 
       lab.it('returns an error', function (done) {
         steps.getRepositories(function (err) {

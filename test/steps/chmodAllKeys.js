@@ -5,8 +5,6 @@ var lab = exports.lab = Lab.script();
 var expect = require('code').expect;
 
 var childProcess = require('child_process');
-var path = require('path');
-var fs = require('fs');
 var sinon = require('sinon');
 
 // require this after we have now changed the env for the directories
@@ -22,7 +20,9 @@ lab.experiment('chmodAllKeys', function () {
       process.env[key] = requiredEnvVars[key];
     });
     sinon.stub(steps, 'saveToLogs', function (cb) {
-      return function (err, stdout, stderr) { cb(err, stdout, stderr); }
+      return function (err, stdout, stderr) {
+        cb(err, stdout, stderr);
+      };
     });
     sinon.stub(childProcess, 'exec').yieldsAsync(null);
     done();
@@ -32,14 +32,14 @@ lab.experiment('chmodAllKeys', function () {
     steps.saveToLogs.restore();
     childProcess.exec.restore();
     done();
-  })
+  });
 
   lab.experiment('succeeds', function () {
     lab.experiment('when there are keys', function () {
       lab.test('to set the permissions on the keys', function (done) {
         steps.chmodAllKeys(function (err) {
           if (err) { return done(err); }
-          sinon.assert.calledOnce(childProcess.exec)
+          sinon.assert.calledOnce(childProcess.exec);
           sinon.assert.calledWith(
             childProcess.exec,
             'chmod -R 600 *'

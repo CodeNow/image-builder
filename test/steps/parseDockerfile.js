@@ -7,7 +7,6 @@ var expect = require('code').expect;
 var childProcess = require('child_process');
 var sinon = require('sinon');
 var fs = require('fs');
-var path = require('path');
 
 var steps = require('../../lib/steps');
 
@@ -19,10 +18,10 @@ lab.experiment('parseDockerfile', function () {
     Object.keys(requiredEnvVars).forEach(function (key) {
       process.env[key] = requiredEnvVars[key];
     });
-    steps.dirs = {}
+    steps.dirs = {};
     steps.dirs.dockerContext = '/tmp/rnnbl.XXXXXXXXXXXXXXXXXXXX';
     steps.dirs.keyDirectory = '/tmp/rnnbl.key.XXXXXXXXXXXXXXXXXXXX';
-    steps.logs = {}
+    steps.logs = {};
     steps.logs.dockerBuild = '/tmp/rnnbl.log.XXXXXXXXXXXXXXXXXXXX';
     steps.logs.stdout = '/tmp/rnnbl.ib.stdout.XXXXXXXXXXXXXXXXXXXX';
     steps.logs.stderr = '/tmp/rnnbl.ib.stderr.XXXXXXXXXXXXXXXXXXXX';
@@ -34,14 +33,19 @@ lab.experiment('parseDockerfile', function () {
     Object.keys(steps.data).forEach(function (key) {
       delete steps.data[key];
     });
-    sinon.stub(childProcess, 'execFile').yieldsAsync(null, new Buffer(''), new Buffer(''));
+    sinon.stub(childProcess, 'execFile')
+      .yieldsAsync(null, new Buffer(''), new Buffer(''));
     // by default, we don't want a layer cache to exist
     childProcess.execFile
       .withArgs('cp')
       .yieldsAsync(new Error('copy failed'));
     sinon.stub(steps, 'saveToLogs', function (cb) {
       return function (err, stdout, stderr) {
-        cb(err, stdout ? stdout.toString() : '', stderr ? stderr.toString() : ''); }
+        cb(
+          err,
+          stdout ? stdout.toString() : '', stderr ? stderr.toString() : ''
+        );
+      };
     });
     sinon.stub(fs, 'readFileSync');
     sinon.stub(fs, 'writeFileSync').returns();
@@ -54,7 +58,7 @@ lab.experiment('parseDockerfile', function () {
     fs.readFileSync.restore();
     fs.writeFileSync.restore();
     done();
-  })
+  });
 
   lab.experiment('succeeds', function () {
     lab.experiment('with runnable-cache', function () {
@@ -68,7 +72,7 @@ lab.experiment('parseDockerfile', function () {
           'WORKDIR /fon',
           'RUN npm install express # runnable-cache',
           'CMD ["node", "server.js"]'
-        ].join('\n'))
+        ].join('\n'));
         done();
       });
 
@@ -95,7 +99,7 @@ lab.experiment('parseDockerfile', function () {
           'RUN npm install hapi && \\',
           '  npm install express #Runnable-cache',
           'CMD ["node", "server.js"]'
-        ].join('\n'))
+        ].join('\n'));
         done();
       });
 
@@ -123,7 +127,7 @@ lab.experiment('parseDockerfile', function () {
           'RUN npm install hapi && \\',
           '  npm install express',
           'CMD ["node", "server.js"]'
-        ].join('\n'))
+        ].join('\n'));
         done();
       });
 
@@ -131,7 +135,7 @@ lab.experiment('parseDockerfile', function () {
         steps.parseDockerfile(function (err) {
           if (err) { return done(err); }
           // not copying a cache
-          sinon.assert.notCalled(childProcess.execFile)
+          sinon.assert.notCalled(childProcess.execFile);
           expect(!!steps.data.usingCache).to.be.false();
           expect(steps.data.cachedLine).to.be.undefined();
           expect(steps.data.createdByHash).to.be.undefined();
@@ -154,7 +158,7 @@ lab.experiment('parseDockerfile', function () {
           'WORKDIR /fon',
           'RUN npm install express # runnable-cache',
           'CMD ["node", "server.js"]'
-        ].join('\n'))
+        ].join('\n'));
         done();
       });
 

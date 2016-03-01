@@ -34,15 +34,19 @@ lab.experiment('parseBuildLogAndHistory', function () {
     var historyString = [
       'beefdead 8 months ago is bad to eat # runnable-cache'
     ].join('\n');
-    sinon.stub(childProcess, 'execFile').yieldsAsync(null, new Buffer(''), new Buffer(''));
+    sinon.stub(childProcess, 'execFile')
+      .yieldsAsync(null, new Buffer(''), new Buffer(''));
     childProcess.execFile
       .withArgs('docker')
-      .yieldsAsync(null, new Buffer(historyString), new Buffer(''))
+      .yieldsAsync(null, new Buffer(historyString), new Buffer(''));
     sinon.stub(fs, 'readFileSync').returns(buildLog);
     sinon.stub(steps, 'saveToLogs', function (cb) {
       return function (err, stdout, stderr) {
-        cb(err, stdout ? stdout.toString() : '', stderr ? stderr.toString() : '');
-      }
+        cb(
+          err,
+          stdout ? stdout.toString() : '', stderr ? stderr.toString() : ''
+        );
+      };
     });
     done();
   });
@@ -103,7 +107,7 @@ lab.experiment('parseBuildLogAndHistory', function () {
 
     lab.experiment('with an available layer cache', function () {
       lab.beforeEach(function (done) {
-        steps.data.usingCache = true
+        steps.data.usingCache = true;
         done();
       });
 
