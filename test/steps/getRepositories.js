@@ -11,27 +11,7 @@ var sinon = require('sinon');
 
 var lockfile = require('lockfile');
 
-var cacheDir = process.env.CACHE_DIR;
-if (!cacheDir) {
-  cacheDir = process.env.CACHE_DIR = '/tmp/cache';
-}
-var layerCacheDir = process.env.LAYER_CACHE_DIR;
-if (!layerCacheDir) {
-  layerCacheDir = process.env.LAYER_CACHE_DIR = '/tmp/layer-cache';
-}
-// require this after we have now changed the env for the directories
 var steps = require('../../lib/steps');
-
-var requiredEnvVars = {
-  RUNNABLE_AWS_ACCESS_KEY: process.env.AWS_ACCESS_KEY,
-  RUNNABLE_AWS_SECRET_KEY: process.env.AWS_SECRET_KEY
-};
-lab.before(function (done) {
-  Object.keys(requiredEnvVars).forEach(function (key) {
-    process.env[key] = requiredEnvVars[key];
-  });
-  done();
-});
 
 lab.experiment('getRepositories', function () {
   var requiredEnvVars = {
@@ -41,39 +21,81 @@ lab.experiment('getRepositories', function () {
     RUNNABLE_DEPLOYKEY: 'flaming-octo-nemesis.key'
   };
   lab.beforeEach(function (done) {
-    Object.keys(requiredEnvVars).forEach(
-      function (key) { process.env[key] = requiredEnvVars[key]; });
+    Object.keys(requiredEnvVars).forEach(function (key) {
+      process.env[key] = requiredEnvVars[key];
+    });
+    steps.dirs = {}
+    steps.dirs.dockerContext = '/tmp/rnnbl.XXXXXXXXXXXXXXXXXXXX';
+    steps.dirs.keyDirectory = '/tmp/rnnbl.key.XXXXXXXXXXXXXXXXXXXX';
+    steps.logs = {}
+    steps.logs.dockerBuild = '/tmp/rnnbl.log.XXXXXXXXXXXXXXXXXXXX';
+    steps.logs.stdout = '/tmp/rnnbl.ib.stdout.XXXXXXXXXXXXXXXXXXXX';
+    steps.logs.stderr = '/tmp/rnnbl.ib.stderr.XXXXXXXXXXXXXXXXXXXX';
     done();
   });
+
   lab.beforeEach(function (done) {
-    childProcess.exec('rm -rf ' + cacheDir + '/*', done);
+    sinon.stub(childProcess, 'execFile').yields(null, new Buffer(''), new Buffer(''));
+    sinon.stub(steps, 'saveToLogs', function (cb) {
+      return function (err, stdout, stderr) {
+        cb(err, stdout ? stdout.toString() : '', stderr ? stderr.toString() : ''); }
+    });
+    sinon.stub(lockfile, 'lock').yields(null, true);
+    sinon.stub(lockfile, 'unlock').yields(null);
+    done()
   });
-  lab.beforeEach(steps.makeWorkingFolders.bind(steps));
+
+  lab.afterEach(function (done) {
+    childProcess.execFile.restore();
+    steps.saveToLogs.restore();
+    lockfile.lock.restore();
+    lockfile.unlock.restore();
+    done()
+  })
 
   lab.experiment('succeeds', function () {
-
     lab.experiment('when there is a repo', function () {
+      lab.beforeEach(function (done) {
+        childProcess.execFile.yieldsAsync(null, new Buffer(''), new Buffer(''));
+        done()
+      })
+
       lab.test('to download the repo', function (done) {
         // no lock, so it returns true
-        sinon.stub(lockfile, 'lock').yields(null, true);
-        sinon.stub(lockfile, 'unlock').yields(null);
-        sinon.stub(childProcess, 'execFile')
-          .yields(null, new Buffer(''), new Buffer(''));
         steps.getRepositories(function (err) {
           if (err) { return done(err); }
-          expect(childProcess.execFile.calledWithMatch('git',
-            ['clone', '-q', sinon.match.string]))
-            .to.be.true();
-          expect(childProcess.execFile.calledWithMatch('git',
-            ['checkout', sinon.match.string]))
-            .to.be.true();
-          expect(childProcess.execFile.calledWithMatch('cp'))
-            .to.be.true();
-          childProcess.execFile.restore();
-          expect(lockfile.lock.calledOnce).to.be.true();
-          expect(lockfile.unlock.calledOnce).to.be.true();
-          lockfile.lock.restore();
-          lockfile.unlock.restore();
+          sinon.assert.calledWith(
+            childProcess.execFile,
+            'git',
+            [
+              'clone',
+              '-q',
+              'git@github.com:bkendall/flaming-octo-nemesis',
+              '/cache/bkendall/flaming-octo-nemesis'
+            ]
+          );
+          sinon.assert.calledWith(
+            childProcess.execFile,
+            'git',
+            [
+              'checkout',
+              '-q',
+              '34a728c59e713b7fbf5b0d6ed3a8e4f4e2c695c5'
+            ]
+          );
+          sinon.assert.calledWith(
+            childProcess.execFile,
+            'cp',
+            [
+              '-p',
+              '-r',
+              '-d',
+              sinon.match.string,
+              sinon.match.string
+            ]
+          )
+          sinon.assert.calledOnce(lockfile.lock)
+          sinon.assert.calledOnce(lockfile.unlock)
           done();
         });
       });
@@ -99,42 +121,58 @@ lab.experiment('getRepositories', function () {
     });
 
     lab.experiment('when a lock already exists for the repo', function () {
-      lab.test('to download the repo', function (done) {
+      lab.beforeEach(function (done) {
         // cannot get the lock => false
-        sinon.stub(lockfile, 'lock').yields(new Error());
-        sinon.stub(lockfile, 'unlock').yields();
-        sinon.stub(childProcess, 'execFile')
-          .yields(null, new Buffer(''), new Buffer(''));
+        lockfile.lock.yields(new Error());
+        done();
+      })
+
+      lab.test('to download the repo', function (done) {
         steps.getRepositories(function (err) {
           if (err) { return done(err); }
-          expect(childProcess.execFile.calledWithMatch('git',
-            ['clone', '-q', sinon.match.string]))
-            .to.be.true();
-          expect(childProcess.execFile.calledWithMatch('git',
-            ['checkout', sinon.match.string]))
-            .to.be.true();
+          sinon.assert.calledWith(
+            childProcess.execFile,
+            'git',
+            [
+              'clone',
+              '-q',
+              sinon.match.string,
+              sinon.match.string
+            ]
+          )
+          sinon.assert.calledWith(
+            childProcess.execFile,
+            'git',
+            [
+              'checkout',
+              '-q',
+              sinon.match.string
+            ]
+          )
           expect(childProcess.execFile.calledWithMatch('cp')).to.be.false();
-          expect(lockfile.lock.calledOnce).to.be.true();
-          expect(lockfile.unlock.called).to.be.false();
-          lockfile.lock.restore();
-          lockfile.unlock.restore();
-          childProcess.execFile.restore();
           done();
         });
       });
     });
 
     lab.experiment('when the repo has already been cached', function () {
-      lab.test('to still complete', function (done) {
-        var repoGitDir = path.join(
-          cacheDir,
-          'bkendall/flaming-octo-nemesis',
-          '.git');
-        sinon.stub(lockfile, 'lock').yields(null);
-        sinon.stub(lockfile, 'unlock').yields(null);
+      var repoGitDir = path.join(
+        '/cache',
+        'bkendall/flaming-octo-nemesis',
+        '.git');
+
+      lab.beforeEach(function (done) {
+        childProcess.execFile.yieldsAsync(null, new Buffer(''), new Buffer(''));
         sinon.stub(fs, 'existsSync').withArgs(repoGitDir).returns(true);
-        sinon.stub(childProcess, 'execFile')
-          .yields(null, new Buffer(''), new Buffer(''));
+        done();
+      })
+
+      lab.afterEach(function (done) {
+        fs.existsSync.restore();
+        done();
+      })
+
+      lab.test('to still complete', function (done) {
         steps.getRepositories(function (err) {
           if (err) { return done(err); }
           expect(fs.existsSync.calledWithExactly(repoGitDir)).to.be.true();
@@ -146,47 +184,41 @@ lab.experiment('getRepositories', function () {
             .to.be.true();
           expect(childProcess.execFile.calledWithMatch('cp')).to.be.true();
           expect(lockfile.lock.calledOnce).to.be.true();
-          lockfile.lock.restore();
-          lockfile.unlock.restore();
-          fs.existsSync.restore();
-          childProcess.execFile.restore();
           done();
         });
       });
 
       lab.experiment('but needing to be updated', function () {
-        lab.test('to updated and complete', function (done) {
-          var repoGitDir = path.join(
-            cacheDir,
-            'bkendall/flaming-octo-nemesis',
-            '.git');
-          sinon.stub(lockfile, 'lock').yields(null);
-          sinon.stub(lockfile, 'unlock').yields(null);
-          sinon.stub(fs, 'existsSync').withArgs(repoGitDir).returns(true);
-          sinon.stub(childProcess, 'execFile')
+        lab.beforeEach(function (done) {
+          childProcess.execFile
             .withArgs('git', ['rev-parse', 'HEAD'])
             .yields(
               null,
               new Buffer('04d07787dd44b4f2167e26532e95471871a9b233'),
               new Buffer(''));
-          sinon.stub(childProcess, 'execFile')
-            .yields(null, new Buffer(''), new Buffer(''));
+          done();
+        })
+
+        lab.test('to updated and complete', function (done) {
           steps.getRepositories(function (err) {
             if (err) { return done(err); }
-            expect(childProcess.execFile.calledWith('git',
-              ['fetch', '--all']))
-              .to.be.true();
-            expect(
-              childProcess.execFile.calledWith('git', [
+            sinon.assert.calledWith(
+              childProcess.execFile,
+              'git',
+              [
+                'fetch',
+                '--all'
+              ]
+            )
+            sinon.assert.calledWith(
+              childProcess.execFile,
+              'git',
+              [
                 'checkout',
-                '-q ',
+                '-q',
                 '34a728c59e713b7fbf5b0d6ed3a8e4f4e2c695c5'
-              ]))
-              .to.be.true();
-            lockfile.lock.restore();
-            lockfile.unlock.restore();
-            fs.existsSync.restore();
-            childProcess.execFile.restore();
+              ]
+            )
             done();
           });
         });
@@ -195,7 +227,6 @@ lab.experiment('getRepositories', function () {
   });
 
   lab.experiment('fails', function () {
-
     lab.experiment('when there is a repo, but no commitish', function () {
       lab.beforeEach(function (done) {
         delete process.env.RUNNABLE_COMMITISH;
@@ -217,17 +248,9 @@ lab.experiment('getRepositories', function () {
 
     lab.experiment('to make sure the cache directory exists', function () {
       lab.beforeEach(function (done) {
-        sinon.stub(childProcess, 'execFile')
-          .withArgs('mkdir', ['-p', '/tmp/cache'])
-          .callsArgWith(
-            1,
-            new Error('Command failed'),
-            '',
-            '');
-        done();
-      });
-      lab.afterEach(function (done) {
-        childProcess.execFile.restore();
+        childProcess.execFile
+          .withArgs('mkdir', ['-p', '/cache'])
+          .callsArgWith(2, new Error('Command failed'), '', '');
         done();
       });
 
@@ -242,19 +265,9 @@ lab.experiment('getRepositories', function () {
 
     lab.experiment('to remove all the ssh keys from agent', function () {
       lab.beforeEach(function (done) {
-        sinon.stub(childProcess, 'execFile');
         childProcess.execFile
           .withArgs('ssh-add', ['-D'])
-          .callsArgWith(
-            1,
-            new Error('Command failed'),
-            '',
-            '');
-        childProcess.execFile.yields(null, '', '');
-        done();
-      });
-      lab.afterEach(function (done) {
-        childProcess.execFile.restore();
+          .callsArgWith(2, new Error('Command failed'), '', '');
         done();
       });
 
@@ -269,19 +282,9 @@ lab.experiment('getRepositories', function () {
 
     lab.experiment('to make the lock file directory', function () {
       lab.beforeEach(function (done) {
-        sinon.stub(childProcess, 'execFile');
         childProcess.execFile
-          .withArgs('mkdir', ['-p', '/tmp/cache/bkendall'])
-          .callsArgWith(
-            1,
-            new Error('Command failed'),
-            '',
-            '');
-        childProcess.execFile.yields(null, '', '');
-        done();
-      });
-      lab.afterEach(function (done) {
-        childProcess.execFile.restore();
+          .withArgs('mkdir', ['-p', '/cache/bkendall'])
+          .callsArgWith(2, new Error('Command failed'), '', '');
         done();
       });
 
@@ -295,19 +298,17 @@ lab.experiment('getRepositories', function () {
     });
 
     lab.experiment('to release the lock', function () {
+      lab.beforeEach(function (done) {
+        lockfile.unlock.yields(new Error('could not unlock'));
+        done();
+      })
+
       lab.it('returns an error', function (done) {
-        sinon.stub(childProcess, 'execFile')
-          .yields(null, new Buffer(''), new Buffer(''));
-        sinon.stub(lockfile, 'lock').yields(null);
-        sinon.stub(lockfile, 'unlock').yields(new Error('could not unlock'));
         steps.getRepositories(function (err) {
           expect(err).to.exist();
           expect(err.message).to.match(/could not unlock/);
           // should have tried to unlock it twice
-          expect(lockfile.unlock.callCount).to.equal(2);
-          childProcess.execFile.restore();
-          lockfile.unlock.restore();
-          lockfile.lock.restore();
+          sinon.assert.calledTwice(lockfile.unlock);
           done();
         });
       });

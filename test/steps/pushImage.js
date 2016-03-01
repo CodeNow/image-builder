@@ -19,19 +19,20 @@ lab.experiment('pushImage', function () {
     process.env.RUNNABLE_IMAGE_BUILDER_NAME = 'builder';
     process.env.RUNNABLE_IMAGE_BUILDER_TAG = '1738';
 
-    sinon.stub(steps, 'saveToLogs', function (cb) {
-      return cb;
-    });
+    sinon.stub(steps, 'saveToLogs').returnsArg(0);
     done();
   });
+
   beforeEach(function(done) {
-    sinon.stub(childProcess, 'exec').yieldsAsync();
+    sinon.stub(childProcess, 'execFile').yieldsAsync();
     done();
   });
+
   afterEach(function(done) {
-    childProcess.exec.restore();
+    childProcess.execFile.restore();
     done();
   });
+
   after(function(done) {
     delete process.env.RUNNABLE_DOCKER;
     delete process.env.RUNNABLE_DOCKERTAG;
@@ -40,6 +41,7 @@ lab.experiment('pushImage', function () {
     steps.saveToLogs.restore();
     done();
   });
+
   lab.experiment('with push image defined', function () {
     before(function(done) {
       process.env.RUNNABLE_PUSH_IMAGE = true;
@@ -53,13 +55,25 @@ lab.experiment('pushImage', function () {
       steps.pushImage(function (err) {
         expect(err).to.be.undefined();
         sinon.assert.calledWith(
-          childProcess.exec,
-          'docker --host http://fake.host:4242 run -d ' +
-          '--label="type=imagePush" --restart=on-failure:5 ' +
-          '-e "RUNNABLE_DOCKER=http://fake.host:4242" ' +
-          '-e "RUNNABLE_DOCKERTAG=registry.runnable.com/111/222:333" ' +
-          '-e "NODE_ENV=test" ' +
-          ' builder:1738 node ./lib/push-image.js'
+          childProcess.execFile,
+          'docker',
+          [
+            '--host',
+            'http://fake.host:4242',
+            'run',
+            '-d',
+            '--label="type=imagePush"',
+            '--restart=on-failure:5',
+            '-e',
+            'RUNNABLE_DOCKER=http://fake.host:4242',
+            '-e',
+            'RUNNABLE_DOCKERTAG=registry.runnable.com/111/222:333',
+            '-e',
+            'NODE_ENV=test',
+            '1738',
+            'node',
+            './lib/push-image.js'
+          ]
         );
         done();
       });
@@ -69,7 +83,7 @@ lab.experiment('pushImage', function () {
     lab.test('should not push image', function (done) {
       steps.pushImage(function (err) {
         expect(err).to.be.undefined();
-        expect(childProcess.exec.called).to.be.false();
+        expect(childProcess.execFile.called).to.be.false();
         done();
       });
     });

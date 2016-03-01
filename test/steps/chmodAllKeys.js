@@ -9,34 +9,8 @@ var path = require('path');
 var fs = require('fs');
 var sinon = require('sinon');
 
-var cacheDir = process.env.CACHE_DIR;
-if (!cacheDir) {
-  cacheDir = process.env.CACHE_DIR = '/tmp/cache';
-}
-var layerCacheDir = process.env.LAYER_CACHE_DIR;
-if (!layerCacheDir) {
-  layerCacheDir = process.env.LAYER_CACHE_DIR = '/tmp/layer-cache';
-}
 // require this after we have now changed the env for the directories
 var steps = require('../../lib/steps');
-
-var requiredEnvVars = {
-  RUNNABLE_AWS_ACCESS_KEY: process.env.AWS_ACCESS_KEY,
-  RUNNABLE_AWS_SECRET_KEY: process.env.AWS_SECRET_KEY
-};
-lab.beforeEach(function (done) {
-  Object.keys(requiredEnvVars).forEach(function (key) {
-    process.env[key] = requiredEnvVars[key];
-    expect(requiredEnvVars[key]).to.not.be.undefined();
-  });
-  done();
-});
-lab.afterEach(function (done) {
-  Object.keys(requiredEnvVars).forEach(function (key) {
-    delete process.env[key];
-  });
-  done();
-});
 
 lab.experiment('chmodAllKeys', function () {
   var requiredEnvVars = {
@@ -44,40 +18,34 @@ lab.experiment('chmodAllKeys', function () {
     RUNNABLE_DEPLOYKEY: 'flaming-octo-nemesis.key'
   };
   lab.beforeEach(function (done) {
-    Object.keys(requiredEnvVars).forEach(
-      function (key) { process.env[key] = requiredEnvVars[key]; });
+    Object.keys(requiredEnvVars).forEach(function (key) {
+      process.env[key] = requiredEnvVars[key];
+    });
+    sinon.stub(steps, 'saveToLogs', function (cb) {
+      return function (err, stdout, stderr) { cb(err, stdout, stderr); }
+    });
+    sinon.stub(childProcess, 'execFile').yieldsAsync(null);
     done();
   });
-  lab.beforeEach(steps.makeWorkingFolders.bind(steps));
+
+  lab.afterEach(function (done) {
+    steps.saveToLogs.restore();
+    childProcess.execFile.restore();
+    done();
+  })
 
   lab.experiment('succeeds', function () {
-    // provide options to check that execFile was called
-    lab.beforeEach(function (done) {
-      sinon.spy(childProcess, 'execFile');
-      done();
-    });
-    lab.afterEach(function (done) {
-      childProcess.execFile.restore();
-      done();
-    });
-
     lab.experiment('when there are keys', function () {
-      lab.beforeEach({ timeout: 5000 }, steps.downloadDeployKeys.bind(steps));
-      lab.beforeEach(function (done) { childProcess.execFile.reset(); done(); });
-
       lab.test('to set the permissions on the keys', function (done) {
         steps.chmodAllKeys(function (err) {
           if (err) { return done(err); }
-          expect(childProcess.execFile.calledOnce).to.be.true();
-          expect(childProcess.execFile.calledWith('chmod', ['-R', '600', '*'])).to.be.true();
-          var keyPath = path.join(
-            steps.dirs.keyDirectory,
-            requiredEnvVars.RUNNABLE_DEPLOYKEY);
-          fs.stat(keyPath, function (err, stats) {
-            if (err) { return done(err); }
-            expect(stats.mode).to.equal(33152);
-            done();
-          });
+          sinon.assert.calledOnce(childProcess.execFile)
+          sinon.assert.calledWith(
+            childProcess.execFile,
+            'chmod',
+            [ '-R', '600', '*' ]
+          );
+          done();
         });
       });
     });
@@ -93,12 +61,11 @@ lab.experiment('chmodAllKeys', function () {
         process.env.RUNNABLE_DEPLOYKEY = oldDeployKey;
         done();
       });
-      lab.beforeEach(function (done) { childProcess.execFile.reset(); done(); });
 
       lab.test('to just move on', function (done) {
         steps.chmodAllKeys(function (err) {
           if (err) { return done(err); }
-          expect(childProcess.execFile.callCount).to.equal(0);
+          sinon.assert.notCalled(childProcess.execFile);
           done();
         });
       });
@@ -106,28 +73,20 @@ lab.experiment('chmodAllKeys', function () {
   });
 
   lab.experiment('fails', function () {
-    lab.beforeEach({ timeout: 5000 }, steps.downloadDeployKeys.bind(steps));
-
     lab.experiment('when the execFile call fails', function () {
       lab.beforeEach(function (done) {
-        sinon.stub(childProcess, 'execFile', function () {
-          var cb = Array.prototype.slice.call(arguments).pop();
-          cb(
-            new Error('Command failed'),
-            '',
-            'chmod: cannot access ‘*’: No such file or directory\n');
-        });
-        done();
-      });
-      lab.afterEach(function (done) {
-        childProcess.execFile.restore();
+        childProcess.execFile.yieldsAsync(
+          new Error('Command failed'),
+          '',
+          'chmod: cannot access ‘*’: No such file or directory\n'
+        );
         done();
       });
 
       lab.it('should return an error', function (done) {
         steps.chmodAllKeys(function (err) {
-          expect(require('child_process').execFile.calledOnce).to.be.true();
           expect(err).to.exist();
+          sinon.assert.calledOnce(childProcess.execFile);
           done();
         });
       });

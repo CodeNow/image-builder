@@ -4,36 +4,28 @@ var Lab = require('lab');
 var lab = exports.lab = Lab.script();
 var expect = require('code').expect;
 
-var cacheDir = process.env.CACHE_DIR;
-if (!cacheDir) {
-  cacheDir = process.env.CACHE_DIR = '/tmp/cache';
-}
-var layerCacheDir = process.env.LAYER_CACHE_DIR;
-if (!layerCacheDir) {
-  layerCacheDir = process.env.LAYER_CACHE_DIR = '/tmp/layer-cache';
-}
 // require this after we have now changed the env for the directories
 var steps = require('../../lib/steps');
 
-var requiredEnvVars = {
-  RUNNABLE_AWS_ACCESS_KEY: process.env.AWS_ACCESS_KEY,
-  RUNNABLE_AWS_SECRET_KEY: process.env.AWS_SECRET_KEY
-};
-lab.beforeEach(function (done) {
-  Object.keys(requiredEnvVars).forEach(function (key) {
-    expect(requiredEnvVars[key]).to.not.be.undefined();
-    process.env[key] = requiredEnvVars[key];
-  });
-  done();
-});
-lab.afterEach(function (done) {
-  Object.keys(requiredEnvVars).forEach(function (key) {
-    delete process.env[key];
-  });
-  done();
-});
-
 lab.experiment('checkForRequiredEnvVars', function () {
+  var requiredEnvVars = {
+    RUNNABLE_AWS_ACCESS_KEY: process.env.AWS_ACCESS_KEY,
+    RUNNABLE_AWS_SECRET_KEY: process.env.AWS_SECRET_KEY
+  };
+  lab.beforeEach(function (done) {
+    Object.keys(requiredEnvVars).forEach(function (key) {
+      expect(requiredEnvVars[key]).to.not.be.undefined();
+      process.env[key] = requiredEnvVars[key];
+    });
+    done();
+  });
+  lab.afterEach(function (done) {
+    Object.keys(requiredEnvVars).forEach(function (key) {
+      delete process.env[key];
+    });
+    done();
+  });
+
   lab.experiment('fails', function () {
     lab.beforeEach(function (done) {
       Object.keys(requiredEnvVars).forEach(

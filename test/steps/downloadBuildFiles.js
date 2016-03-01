@@ -5,29 +5,11 @@ var lab = exports.lab = Lab.script();
 var expect = require('code').expect;
 
 var path = require('path');
-var fs = require('fs');
+var sinon = require('sinon');
+var childProcess = require('child_process');
 
-var cacheDir = process.env.CACHE_DIR;
-if (!cacheDir) {
-  cacheDir = process.env.CACHE_DIR = '/tmp/cache';
-}
-var layerCacheDir = process.env.LAYER_CACHE_DIR;
-if (!layerCacheDir) {
-  layerCacheDir = process.env.LAYER_CACHE_DIR = '/tmp/layer-cache';
-}
 // require this after we have now changed the env for the directories
 var steps = require('../../lib/steps');
-
-var requiredEnvVars = {
-  RUNNABLE_AWS_ACCESS_KEY: process.env.AWS_ACCESS_KEY,
-  RUNNABLE_AWS_SECRET_KEY: process.env.AWS_SECRET_KEY
-};
-lab.before(function (done) {
-  Object.keys(requiredEnvVars).forEach(function (key) {
-    process.env[key] = requiredEnvVars[key];
-  });
-  done();
-});
 
 lab.experiment('downloadBuildFiles', function () {
   var requiredEnvVars = {
@@ -36,11 +18,24 @@ lab.experiment('downloadBuildFiles', function () {
     RUNNABLE_PREFIX: ''
   };
   lab.beforeEach(function (done) {
-    Object.keys(requiredEnvVars).forEach(
-      function (key) { process.env[key] = requiredEnvVars[key]; });
+    Object.keys(requiredEnvVars).forEach(function (key) {
+      process.env[key] = requiredEnvVars[key];
+    });
+    sinon.stub(childProcess, 'execFile').yieldsAsync(null, new Buffer(''), new Buffer(''))
+    steps.dirs = {}
+    steps.dirs.dockerContext = '/tmp/rnnbl.XXXXXXXXXXXXXXXXXXXX';
+    steps.dirs.keyDirectory = '/tmp/rnnbl.key.XXXXXXXXXXXXXXXXXXXX';
+    steps.logs = {}
+    steps.logs.dockerBuild = '/tmp/rnnbl.log.XXXXXXXXXXXXXXXXXXXX';
+    steps.logs.stdout = '/tmp/rnnbl.ib.stdout.XXXXXXXXXXXXXXXXXXXX';
+    steps.logs.stderr = '/tmp/rnnbl.ib.stderr.XXXXXXXXXXXXXXXXXXXX';
     done();
   });
-  lab.before(steps.makeWorkingFolders.bind(steps));
+
+  lab.afterEach(function (done) {
+    childProcess.execFile.restore()
+    done();
+  })
 
   lab.experiment('fails', function () {
     lab.beforeEach(function (done) {
@@ -58,7 +53,6 @@ lab.experiment('downloadBuildFiles', function () {
   });
 
   lab.experiment('succeeds', function () {
-
     lab.experiment('if prefix is missing', function () {
       lab.beforeEach(function (done) {
         delete process.env.RUNNABLE_PREFIX;
@@ -72,7 +66,22 @@ lab.experiment('downloadBuildFiles', function () {
       lab.test('it should be fine', function (done) {
         steps.downloadBuildFiles(function (err) {
           if (err) { return done(err); }
-          // TODO check directory
+          sinon.assert.calledOnce(childProcess.execFile)
+          sinon.assert.calledWith(
+            childProcess.execFile,
+            'node',
+            [
+              'downloadS3Files.js',
+              '--bucket',
+              sinon.match.string,
+              '--files',
+              sinon.match.string,
+              '--prefix',
+              '',
+              '--dest',
+              sinon.match.string
+            ]
+          )
           done();
         });
       });
@@ -120,14 +129,25 @@ lab.experiment('downloadBuildFiles', function () {
     });
 
     lab.experiment('with files to download', function () {
-
       lab.test('to download the files', function (done) {
         steps.downloadBuildFiles(function (err) {
           if (err) { return done(err); }
-          var dockerfilePath = path.join(
-            steps.dirs.dockerContext,
-            'Dockerfile');
-          expect(fs.existsSync(dockerfilePath)).to.be.true();
+          sinon.assert.calledOnce(childProcess.execFile)
+          sinon.assert.calledWith(
+            childProcess.execFile,
+            'node',
+            [
+              'downloadS3Files.js',
+              '--bucket',
+              sinon.match.string,
+              '--files',
+              sinon.match.string,
+              '--prefix',
+              '',
+              '--dest',
+              sinon.match.string
+            ]
+          )
           done();
         });
       });
