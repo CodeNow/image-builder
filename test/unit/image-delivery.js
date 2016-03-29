@@ -161,4 +161,19 @@ describe('ImageDelivery unit test', function () {
       });
     });
   }); // end pushImage
+
+  describe('isWarning', function () {
+    it('should return false', function (done) {
+      var out = ImageDelivery.isWarning('hello, is it me your looking for?');
+      expect(out).to.be.false();
+      done();
+    });
+
+    it('should return true', function (done) {
+      var out = ImageDelivery
+        .isWarning('push or pull swarm/1/2 is already in progress');
+      expect(out).to.be.true();
+      done();
+    });
+  }); // end isWarning
 }); // end ImageDelivery
