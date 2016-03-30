@@ -53,6 +53,10 @@ lab.experiment('runDockerBuild', function () {
 
   lab.experiment('succeeds', function () {
     lab.beforeEach(steps.makeWorkingFolders.bind(steps));
+    lab.beforeEach(function (cb) {
+      steps.dirs.buildRoot = steps.dirs.dockerContext;
+      cb();
+    });
     lab.beforeEach({ timeout: 5000 }, steps.downloadBuildFiles.bind(steps));
 
     lab.experiment('if there is no docker build options', function () {
