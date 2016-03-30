@@ -46,6 +46,20 @@ lab.experiment('makeWorkingFolders', function () {
         done();
       });
     });
+
+    lab.test('sets all varibles', function (done) {
+      steps.makeWorkingFolders(function (err) {
+        if (err) { return done(err); }
+          expect(steps.dirs.dockerContext).to.be.a.string();
+          expect(steps.dirs.buildRoot).to.be.a.string();
+          expect(steps.dirs.buildRoot).to.equal(steps.dirs.dockerContext);
+          expect(steps.dirs.keyDirectory).to.be.a.string();
+          expect(steps.logs.dockerBuild).to.be.a.string();
+          expect(steps.logs.stdout).to.be.a.string();
+          expect(steps.logs.stderr).to.be.a.string();
+        done();
+      });
+    });
   });
 
   lab.experiment('fails', function () {
