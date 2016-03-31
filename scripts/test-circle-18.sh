@@ -13,7 +13,7 @@ docker run \
   -e RUNNABLE_KEYS_BUCKET='runnable.image-builder' \
   -e RUNNABLE_DEPLOYKEY='image-builder.key' \
   -e RUNNABLE_REPO='git@github.com:Runnable/image-builder-test' \
-  -e RUNNABLE_COMMITISH='master' \
+  -e RUNNABLE_COMMITISH='c30225719cebe59ed78e3849e392c83e79d03d42' \
   -e RUNNABLE_DOCKER="tcp://$(cat DOCKER_IP):5354" \
   -e RUNNABLE_DOCKERTAG='test-built-image' \
   -e RUNNABLE_DOCKER_BUILDOPTIONS='' \
