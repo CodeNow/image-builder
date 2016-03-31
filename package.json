@@ -11,7 +11,7 @@
     "async": "^1.4.2",
     "aws-sdk": "^2.2.9",
     "colors": "^1.0.3",
-    "dockerode": "^2.2.3",
+    "dockerode": "^2.2.10",
     "error-cat": "^1.4.1",
     "escape-regex-string": "^1.0.4",
     "fs-transform": "^3.2.4",

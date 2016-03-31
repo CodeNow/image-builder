@@ -115,6 +115,54 @@ lab.experiment('parseDockerfile', function () {
       });
     });
 
+    lab.experiment('build dockerfile', function () {
+      var testDockerfile = 'i am blue';
+      lab.beforeEach(function (done) {
+        fs.readFileSync.returns(testDockerfile);
+        process.env.RUNNABLE_BUILD_DOCKERFILE = '/dir/Dockerfile';
+        process.env.RUNNABLE_REPO = 'git@github.com:Runnable/api';
+        done();
+      });
+
+      lab.afterEach(function (done) {
+        delete process.env.RUNNABLE_BUILD_DOCKERFILE;
+        delete process.env.RUNNABLE_REPO;
+        done();
+      });
+
+      lab.test('should read repo dockerfile', function (done) {
+        steps.parseDockerfile(function (err) {
+          if (err) { return done(err); }
+          var expectedRoot = steps.dirs.dockerContext + '/api';
+          expect(steps.dirs.buildRoot).to.equal(expectedRoot);
+          sinon.assert.calledOnce(fs.readFileSync);
+          sinon.assert.calledWith(fs.readFileSync,
+            expectedRoot + '/dir/Dockerfile');
+
+          sinon.assert.calledOnce(fs.writeFileSync);
+          sinon.assert.calledWith(fs.writeFileSync,
+            expectedRoot + '/dir/Dockerfile', testDockerfile);
+          done();
+        });
+      });
+
+      lab.test('should read cv dockerfile', function (done) {
+        delete process.env.RUNNABLE_BUILD_DOCKERFILE;
+        steps.parseDockerfile(function (err) {
+          if (err) { return done(err); }
+          expect(steps.dirs.buildRoot).to.equal(steps.dirs.dockerContext);
+          sinon.assert.calledOnce(fs.readFileSync);
+          sinon.assert.calledWith(fs.readFileSync,
+            steps.dirs.dockerContext + '/Dockerfile');
+
+          sinon.assert.calledOnce(fs.writeFileSync);
+          sinon.assert.calledWith(fs.writeFileSync,
+            steps.dirs.dockerContext + '/Dockerfile', testDockerfile);
+          done();
+        });
+      });
+    });
+
     lab.experiment('with no runnable-cache', function () {
       lab.beforeEach(function (done) {
         fs.readFileSync.returns([
