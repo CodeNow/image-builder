@@ -93,19 +93,31 @@ describe('build.js unit test', function () {
       sinon.stub(build, '_getTarStream').returns(defaultOps.dirs.dockerContext);
       sinon.stub(build.docker, 'buildImage').yields(null, testRes);
       sinon.stub(build, '_handleBuild').yields();
+      sinon.stub(fs, 'readFileSync').returns(JSON.stringify({
+        url: 'url',
+        username: 'username',
+        password: 'password'
+      }));
 
       build.runDockerBuild(function(err) {
         if (err) { return done(err); }
         expect(build._getTarStream.calledOnce).to.be.true();
-        expect(build.docker.buildImage
-          .calledWith(defaultOps.dirs.dockerContext,
-            { t: process.env.RUNNABLE_DOCKERTAG })).to.be.true();
+        sinon.assert.calledWith(build.docker.buildImage,
+          defaultOps.dirs.dockerContext,
+          { t: process.env.RUNNABLE_DOCKERTAG,
+          registryconfig: {
+            url: {
+              password: 'password',
+              username: 'username'
+            }
+          }});
         expect(build._handleBuild
           .calledWith(testRes)).to.be.true();
 
         build._getTarStream.restore();
         build.docker.buildImage.restore();
         build._handleBuild.restore();
+        fs.readFileSync.restore();
         done();
       });
     });
