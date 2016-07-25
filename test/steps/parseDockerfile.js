@@ -133,15 +133,15 @@ lab.experiment('parseDockerfile', function () {
       lab.test('should read repo dockerfile', function (done) {
         steps.parseDockerfile(function (err) {
           if (err) { return done(err); }
-          var expectedRoot = steps.dirs.dockerContext + '/api';
+          var expectedRoot = steps.dirs.dockerContext + '/api/dir';
           expect(steps.dirs.buildRoot).to.equal(expectedRoot);
           sinon.assert.calledOnce(fs.readFileSync);
           sinon.assert.calledWith(fs.readFileSync,
-            expectedRoot + '/dir/Dockerfile');
+            expectedRoot + '/Dockerfile');
 
           sinon.assert.calledOnce(fs.writeFileSync);
           sinon.assert.calledWith(fs.writeFileSync,
-            expectedRoot + '/dir/Dockerfile', testDockerfile);
+            expectedRoot + '/Dockerfile', testDockerfile);
           done();
         });
       });
