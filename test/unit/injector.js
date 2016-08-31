@@ -71,6 +71,8 @@ lab.experiment('injector.js', function () {
             .to.contain(process.env.RUNNABLE_WAIT_FOR_WEAVE);
           expect(dockerfile[2])
             .to.not.contain(process.env.RUNNABLE_WAIT_FOR_WEAVE);
+          expect(dockerfile[2])
+            .to.not.contain(WAIT_FOR_CHARON);
         });
         done();
       });
@@ -128,7 +130,9 @@ lab.experiment('injector.js', function () {
           expect(dockerfile[1])
             .to.not.contain(process.env.RUNNABLE_WAIT_FOR_WEAVE);
           expect(dockerfile[2])
-            .to.contain(process.env.RUNNABLE_WAIT_FOR_WEAVE + WAIT_FOR_CHARON + 'a b');
+            .to.contain(
+              process.env.RUNNABLE_WAIT_FOR_WEAVE + WAIT_FOR_CHARON + 'a b'
+            );
         });
         done();
       });
