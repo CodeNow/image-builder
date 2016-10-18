@@ -215,7 +215,8 @@ lab.experiment('getRepositories', function () {
               'git',
               [
                 'fetch',
-                '--all'
+                '--depth=1',
+                '34a728c59e713b7fbf5b0d6ed3a8e4f4e2c695c5'
               ]
             );
             sinon.assert.calledWith(
