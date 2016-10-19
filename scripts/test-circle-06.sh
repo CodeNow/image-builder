@@ -6,7 +6,7 @@ set -e
 test_num="06"
 full_repo="bkendall/flaming-octo-nemesis"
 
-git clone git@github.com:bkendall/flaming-octo-nemesis ./test-"$test_num"/"$full_repo"
+git clone -q --depth=1 git@github.com:bkendall/flaming-octo-nemesis ./test-"$test_num"/"$full_repo" 2> /dev/null
 
 build () {
   docker run \

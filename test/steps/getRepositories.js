@@ -75,6 +75,7 @@ lab.experiment('getRepositories', function () {
             [
               'clone',
               '-q',
+              '--depth=1',
               'git@github.com:bkendall/flaming-octo-nemesis',
               '/cache/bkendall/flaming-octo-nemesis'
             ]
@@ -141,6 +142,7 @@ lab.experiment('getRepositories', function () {
             [
               'clone',
               '-q',
+              '--depth=1',
               sinon.match.string,
               sinon.match.string
             ]
@@ -182,10 +184,10 @@ lab.experiment('getRepositories', function () {
           if (err) { return done(err); }
           expect(fs.existsSync.calledWithExactly(repoGitDir)).to.be.true();
           expect(childProcess.execFile.calledWithMatch('git',
-            ['clone', '-q', sinon.match.string]))
+            ['clone', '-q', '--depth=1', sinon.match.string]))
             .to.be.false();
           expect(childProcess.execFile.calledWithMatch('git',
-            ['fetch', '--all']))
+            ['fetch', '--depth=1', 'origin', sinon.match.string]))
             .to.be.true();
           expect(childProcess.execFile.calledWithMatch('cp')).to.be.true();
           expect(lockfile.lock.calledOnce).to.be.true();
@@ -212,7 +214,9 @@ lab.experiment('getRepositories', function () {
               'git',
               [
                 'fetch',
-                '--all'
+                '--depth=1',
+                'origin',
+                '34a728c59e713b7fbf5b0d6ed3a8e4f4e2c695c5'
               ]
             );
             sinon.assert.calledWith(
