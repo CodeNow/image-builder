@@ -142,6 +142,7 @@ lab.experiment('getRepositories', function () {
             [
               'clone',
               '-q',
+              '--depth=1',
               sinon.match.string,
               sinon.match.string
             ]
