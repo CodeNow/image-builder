@@ -75,6 +75,7 @@ lab.experiment('getRepositories', function () {
             [
               'clone',
               '-q',
+              '--depth=1',
               'git@github.com:bkendall/flaming-octo-nemesis',
               '/cache/bkendall/flaming-octo-nemesis'
             ]
