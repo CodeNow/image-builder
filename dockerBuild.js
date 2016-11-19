@@ -34,6 +34,7 @@ async.series([
     var msgPrefix = 'Runnable: ';
     if (err) {
       if (err.message === 'build timeout') {
+        utils.error(colors.red.bold('Build Timeout jorge'));
         utils.error(colors.red.bold(msgPrefix + err.message));
         return process.exit(124);
       }
@@ -41,8 +42,10 @@ async.series([
       if (!err.noLog) {
        var message = 'Hit an unexpected error: ' +
           err.message ? err.message : 'unknown';
+        utils.error(colors.red.bold('Unexpecte error jorge'));
         utils.error(colors.red.bold(msgPrefix + message));
       }
+      utils.error(colors.red.bold('Exit with error 1 jorge'));
       process.exit(1);
     }
     clearInterval(interval);
