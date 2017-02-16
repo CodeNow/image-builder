@@ -145,8 +145,6 @@ describe('build.js unit test', function () {
             cpus: 100,
             testFlag: 'dockerTestArgs'
           })).to.be.true();
-        console.log('aaaa', build._handleBuild.getCall(0).args);
-        console.log('aaaa111', testRes);
         expect(build._handleBuild
           .calledWith(testRes)).to.be.true();
 
@@ -166,7 +164,6 @@ describe('build.js unit test', function () {
 
       build.runDockerBuild(function(err) {
         expect(build._getTarStream.calledOnce).to.be.true();
-        console.log('bbbb', build.docker.buildImage.getCall(0).args);
         expect(build.docker.buildImage
           .calledWith(defaultOps.dirs.dockerContext,
             { dockerfile: undefined,
