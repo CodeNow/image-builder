@@ -146,7 +146,8 @@ lab.experiment('getRepositories', function () {
     lab.experiment('succeeds', function () {
       lab.experiment('when there is a repo', function () {
         lab.beforeEach(function (done) {
-          childProcess.execFile.yieldsAsync(null, new Buffer(''), new Buffer(''));
+          childProcess.execFile.yieldsAsync(null,
+            new Buffer(''), new Buffer(''));
           done();
         });
 
@@ -252,7 +253,8 @@ lab.experiment('getRepositories', function () {
           '.git');
 
         lab.beforeEach(function (done) {
-          childProcess.execFile.yieldsAsync(null, new Buffer(''), new Buffer(''));
+          childProcess.execFile.yieldsAsync(null,
+            new Buffer(''), new Buffer(''));
           sinon.stub(fs, 'existsSync').withArgs(repoGitDir).returns(true);
           done();
         });
