@@ -140,6 +140,7 @@ describe('build.js unit test', function () {
         expect(build._getTarStream.calledOnce).to.be.true();
         expect(build.docker.buildImage
           .calledWith(defaultOps.dirs.dockerContext, {
+            dockerfile: undefined,
             t: process.env.RUNNABLE_DOCKERTAG,
             cpus: 100,
             testFlag: 'dockerTestArgs'
@@ -168,7 +169,10 @@ describe('build.js unit test', function () {
         console.log('bbbb', build.docker.buildImage.getCall(0).args);
         expect(build.docker.buildImage
           .calledWith(defaultOps.dirs.dockerContext,
-            { t: process.env.RUNNABLE_DOCKERTAG })).to.be.true();
+            { dockerfile: undefined,
+              testFlag: 'dockerTestArgs',
+              cpus: 100,
+              t: process.env.RUNNABLE_DOCKERTAG })).to.be.true();
 
         build._getTarStream.restore();
         build.docker.buildImage.restore();
