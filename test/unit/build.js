@@ -164,6 +164,7 @@ describe('build.js unit test', function () {
 
       build.runDockerBuild(function(err) {
         expect(build._getTarStream.calledOnce).to.be.true();
+        console.log('aaaa', build.docker.buildImage.getCall(0).args);
         expect(build.docker.buildImage
           .calledWith(defaultOps.dirs.dockerContext,
             { dockerfile: undefined,
