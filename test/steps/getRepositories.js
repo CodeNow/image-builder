@@ -185,7 +185,7 @@ lab.experiment('getRepositories', function () {
             ['clone', '-q', sinon.match.string]))
             .to.be.false();
           expect(childProcess.execFile.calledWithMatch('git',
-            ['fetch', '--all']))
+            ['fetch', '--prune', '--all']))
             .to.be.true();
           expect(childProcess.execFile.calledWithMatch('cp')).to.be.true();
           expect(lockfile.lock.calledOnce).to.be.true();
@@ -212,6 +212,7 @@ lab.experiment('getRepositories', function () {
               'git',
               [
                 'fetch',
+                '--prune',
                 '--all'
               ]
             );
