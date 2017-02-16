@@ -102,9 +102,11 @@ describe('build.js unit test', function () {
       build.runDockerBuild(function(err) {
         if (err) { return done(err); }
         expect(build._getTarStream.calledOnce).to.be.true();
+        console.log('aaaaa', build.docker.buildImage.getCall(0).args);
         sinon.assert.calledWith(build.docker.buildImage,
           defaultOps.dirs.dockerContext,
           { t: process.env.RUNNABLE_DOCKERTAG,
+          dockerfile: undefined,
           registryconfig: {
             url: {
               password: 'password',
