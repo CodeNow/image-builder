@@ -57,6 +57,7 @@ lab.experiment('getRepositories', function () {
       steps.saveToLogs.restore();
       lockfile.lock.restore();
       lockfile.unlock.restore();
+      delete process.env.RUNNABLE_PRS;
       done();
     });
 
