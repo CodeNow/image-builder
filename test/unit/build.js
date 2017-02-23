@@ -105,6 +105,7 @@ describe('build.js unit test', function () {
         sinon.assert.calledWith(build.docker.buildImage,
           defaultOps.dirs.dockerContext,
           { t: process.env.RUNNABLE_DOCKERTAG,
+          dockerfile: undefined,
           registryconfig: {
             url: {
               password: 'password',
@@ -139,6 +140,7 @@ describe('build.js unit test', function () {
         expect(build._getTarStream.calledOnce).to.be.true();
         expect(build.docker.buildImage
           .calledWith(defaultOps.dirs.dockerContext, {
+            dockerfile: undefined,
             t: process.env.RUNNABLE_DOCKERTAG,
             cpus: 100,
             testFlag: 'dockerTestArgs'
@@ -164,7 +166,8 @@ describe('build.js unit test', function () {
         expect(build._getTarStream.calledOnce).to.be.true();
         expect(build.docker.buildImage
           .calledWith(defaultOps.dirs.dockerContext,
-            { t: process.env.RUNNABLE_DOCKERTAG })).to.be.true();
+            { dockerfile: undefined,
+              t: process.env.RUNNABLE_DOCKERTAG })).to.be.true();
 
         build._getTarStream.restore();
         build.docker.buildImage.restore();
