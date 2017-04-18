@@ -15,6 +15,7 @@ var sinon = require('sinon');
 var createCount = require('callback-count');
 var stream = require('stream');
 var fs = require('fs');
+var tar = require('tar-fs');
 
 var Builder = require('../../lib/steps/build.js');
 var utils = require('../../lib/utils');
@@ -182,12 +183,45 @@ describe('build.js unit test', function () {
   describe('_getTarStream', function () {
     it('should create stream of current dir', function (done) {
       var ops = JSON.parse(JSON.stringify(defaultOps));
-      ops.dirs.dockerContext = __dirname;
+      ops.dirs.buildRoot = __dirname;
       var build = new Builder(ops);
       var tarS = build._getTarStream();
       expect(tarS.pipe).to.exist();
       done();
     });
+    describe('tar.pack', function () {
+      beforeEach(function (done) {
+        sinon.stub(tar, 'pack').returns()
+        done();
+      });
+
+      afterEach(function (done) {
+        tar.pack.restore()
+        delete process.env.RUNNABLE_BUILD_DOCKER_CONTEXT
+        done();
+      });
+
+      it('should call tar.pack', function (done) {
+        var ops = JSON.parse(JSON.stringify(defaultOps));
+        ops.dirs.buildRoot = __dirname;
+        var build = new Builder(ops);
+        var tarS = build._getTarStream();
+        sinon.assert.calledOnce(tar.pack);
+        sinon.assert.calledWithExactly(tar.pack, ops.dirs.buildRoot);
+        done();
+      })
+
+      it('should call tar.pack with proper context', function (done) {
+        process.env.RUNNABLE_BUILD_DOCKER_CONTEXT = 'src/'
+        var ops = JSON.parse(JSON.stringify(defaultOps));
+        ops.dirs.repoRoot = __dirname;
+        var build = new Builder(ops);
+        var tarS = build._getTarStream();
+        sinon.assert.calledOnce(tar.pack);
+        sinon.assert.calledWithExactly(tar.pack, ops.dirs.repoRoot + '/src');
+        done();
+      })
+    })
   });
 
   describe('_handleBuild', function () {

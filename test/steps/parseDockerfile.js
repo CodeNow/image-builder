@@ -146,7 +146,6 @@ lab.experiment('parseDockerfile', function () {
           sinon.assert.calledOnce(fs.writeFileSync);
           sinon.assert.calledWith(fs.writeFileSync,
             expectedRoot + '/Dockerfile', testDockerfile);
-          console.log('aaaaaaaaa', steps);
           done();
         });
       });
