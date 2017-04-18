@@ -191,13 +191,13 @@ describe('build.js unit test', function () {
     });
     describe('tar.pack', function () {
       beforeEach(function (done) {
-        sinon.stub(tar, 'pack').returns()
+        sinon.stub(tar, 'pack').returns();
         done();
       });
 
       afterEach(function (done) {
-        tar.pack.restore()
-        delete process.env.RUNNABLE_BUILD_DOCKER_CONTEXT
+        tar.pack.restore();
+        delete process.env.RUNNABLE_BUILD_DOCKER_CONTEXT;
         done();
       });
 
@@ -205,23 +205,23 @@ describe('build.js unit test', function () {
         var ops = JSON.parse(JSON.stringify(defaultOps));
         ops.dirs.buildRoot = __dirname;
         var build = new Builder(ops);
-        var tarS = build._getTarStream();
+        build._getTarStream();
         sinon.assert.calledOnce(tar.pack);
         sinon.assert.calledWithExactly(tar.pack, ops.dirs.buildRoot);
         done();
-      })
+      });
 
       it('should call tar.pack with proper context', function (done) {
-        process.env.RUNNABLE_BUILD_DOCKER_CONTEXT = 'src/'
+        process.env.RUNNABLE_BUILD_DOCKER_CONTEXT = 'src/';
         var ops = JSON.parse(JSON.stringify(defaultOps));
         ops.dirs.repoRoot = __dirname;
         var build = new Builder(ops);
-        var tarS = build._getTarStream();
+        build._getTarStream();
         sinon.assert.calledOnce(tar.pack);
         sinon.assert.calledWithExactly(tar.pack, ops.dirs.repoRoot + '/src');
         done();
-      })
-    })
+      });
+    });
   });
 
   describe('_handleBuild', function () {
