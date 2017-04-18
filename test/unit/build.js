@@ -91,10 +91,11 @@ describe('build.js unit test', function () {
     });
     describe('with context', function () {
       it('should set options correctly', function (done) {
-        process.env.RUNNABLE_BUILD_DOCKER_CONTEXT = '/src/'
+        process.env.RUNNABLE_BUILD_DOCKER_CONTEXT = '/src/';
         var build = new Builder(defaultOps);
         var testRes = 'some string';
-        sinon.stub(build, '_getTarStream').returns(defaultOps.dirs.dockerContext);
+        sinon.stub(build, '_getTarStream')
+          .returns(defaultOps.dirs.dockerContext);
         sinon.stub(build.docker, 'buildImage').yields(null, testRes);
         sinon.stub(build, '_handleBuild').yields();
         sinon.stub(fs, 'readFileSync').returns(JSON.stringify({
@@ -126,11 +127,12 @@ describe('build.js unit test', function () {
           done();
         });
       });
-      it('should set options correctly and do not change dockerfile path', function (done) {
-        process.env.RUNNABLE_BUILD_DOCKER_CONTEXT = './'
+      it('should set opts and do not change dockerfile path', function (done) {
+        process.env.RUNNABLE_BUILD_DOCKER_CONTEXT = './';
         var build = new Builder(defaultOps);
         var testRes = 'some string';
-        sinon.stub(build, '_getTarStream').returns(defaultOps.dirs.dockerContext);
+        sinon.stub(build, '_getTarStream')
+          .returns(defaultOps.dirs.dockerContext);
         sinon.stub(build.docker, 'buildImage').yields(null, testRes);
         sinon.stub(build, '_handleBuild').yields();
         sinon.stub(fs, 'readFileSync').returns(JSON.stringify({
