@@ -134,7 +134,11 @@ lab.experiment('parseDockerfile', function () {
         steps.parseDockerfile(function (err) {
           if (err) { return done(err); }
           var expectedRoot = steps.dirs.dockerContext + '/api/dir';
+          var expectedRepoRoot = steps.dirs.dockerContext + '/api';
           expect(steps.dirs.buildRoot).to.equal(expectedRoot);
+          expect(steps.dirs.repoRoot).to.equal(expectedRepoRoot);
+          expect(steps.runnableBuildDockerfile)
+            .to.equal(process.env.RUNNABLE_BUILD_DOCKERFILE);
           sinon.assert.calledOnce(fs.readFileSync);
           sinon.assert.calledWith(fs.readFileSync,
             expectedRoot + '/Dockerfile');

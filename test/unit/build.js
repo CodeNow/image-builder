@@ -15,6 +15,7 @@ var sinon = require('sinon');
 var createCount = require('callback-count');
 var stream = require('stream');
 var fs = require('fs');
+var tar = require('tar-fs');
 
 var Builder = require('../../lib/steps/build.js');
 var utils = require('../../lib/utils');
@@ -26,7 +27,8 @@ var defaultOps = {
   logs: {
     dockerBuild: '/test/log'
   },
-  saveToLogs: function () {}
+  saveToLogs: function () {},
+  runnableBuildDockerfile: '/src/Dockerfile'
 };
 
 var ctx = {};
@@ -84,9 +86,85 @@ describe('build.js unit test', function () {
 
     after(function(done) {
       delete process.env.RUNNABLE_DOCKERTAG;
+      delete process.env.RUNNABLE_BUILD_DOCKER_CONTEXT;
       done();
     });
+    describe('with context', function () {
+      it('should set options correctly', function (done) {
+        process.env.RUNNABLE_BUILD_DOCKER_CONTEXT = '/src/';
+        var build = new Builder(defaultOps);
+        var testRes = 'some string';
+        sinon.stub(build, '_getTarStream')
+          .returns(defaultOps.dirs.dockerContext);
+        sinon.stub(build.docker, 'buildImage').yields(null, testRes);
+        sinon.stub(build, '_handleBuild').yields();
+        sinon.stub(fs, 'readFileSync').returns(JSON.stringify({
+          url: 'url',
+          username: 'username',
+          password: 'password'
+        }));
 
+        build.runDockerBuild(function(err) {
+          if (err) { return done(err); }
+          expect(build._getTarStream.calledOnce).to.be.true();
+          sinon.assert.calledWith(build.docker.buildImage,
+            defaultOps.dirs.dockerContext,
+            { t: process.env.RUNNABLE_DOCKERTAG,
+            dockerfile: 'Dockerfile',
+            registryconfig: {
+              url: {
+                password: 'password',
+                username: 'username'
+              }
+            }});
+          expect(build._handleBuild
+            .calledWith(testRes)).to.be.true();
+
+          build._getTarStream.restore();
+          build.docker.buildImage.restore();
+          build._handleBuild.restore();
+          fs.readFileSync.restore();
+          done();
+        });
+      });
+      it('should set opts and do not change dockerfile path', function (done) {
+        process.env.RUNNABLE_BUILD_DOCKER_CONTEXT = './';
+        var build = new Builder(defaultOps);
+        var testRes = 'some string';
+        sinon.stub(build, '_getTarStream')
+          .returns(defaultOps.dirs.dockerContext);
+        sinon.stub(build.docker, 'buildImage').yields(null, testRes);
+        sinon.stub(build, '_handleBuild').yields();
+        sinon.stub(fs, 'readFileSync').returns(JSON.stringify({
+          url: 'url',
+          username: 'username',
+          password: 'password'
+        }));
+
+        build.runDockerBuild(function(err) {
+          if (err) { return done(err); }
+          expect(build._getTarStream.calledOnce).to.be.true();
+          sinon.assert.calledWith(build.docker.buildImage,
+            defaultOps.dirs.dockerContext,
+            { t: process.env.RUNNABLE_DOCKERTAG,
+            dockerfile: 'src/Dockerfile',
+            registryconfig: {
+              url: {
+                password: 'password',
+                username: 'username'
+              }
+            }});
+          expect(build._handleBuild
+            .calledWith(testRes)).to.be.true();
+
+          build._getTarStream.restore();
+          build.docker.buildImage.restore();
+          build._handleBuild.restore();
+          fs.readFileSync.restore();
+          done();
+        });
+      });
+    });
     it('should call buildImage with correct tag', function (done) {
       var build = new Builder(defaultOps);
       var testRes = 'some string';
@@ -182,11 +260,44 @@ describe('build.js unit test', function () {
   describe('_getTarStream', function () {
     it('should create stream of current dir', function (done) {
       var ops = JSON.parse(JSON.stringify(defaultOps));
-      ops.dirs.dockerContext = __dirname;
+      ops.dirs.buildRoot = __dirname;
       var build = new Builder(ops);
       var tarS = build._getTarStream();
       expect(tarS.pipe).to.exist();
       done();
+    });
+    describe('tar.pack', function () {
+      beforeEach(function (done) {
+        sinon.stub(tar, 'pack').returns();
+        done();
+      });
+
+      afterEach(function (done) {
+        tar.pack.restore();
+        delete process.env.RUNNABLE_BUILD_DOCKER_CONTEXT;
+        done();
+      });
+
+      it('should call tar.pack', function (done) {
+        var ops = JSON.parse(JSON.stringify(defaultOps));
+        ops.dirs.buildRoot = __dirname;
+        var build = new Builder(ops);
+        build._getTarStream();
+        sinon.assert.calledOnce(tar.pack);
+        sinon.assert.calledWithExactly(tar.pack, ops.dirs.buildRoot);
+        done();
+      });
+
+      it('should call tar.pack with proper context', function (done) {
+        process.env.RUNNABLE_BUILD_DOCKER_CONTEXT = 'src/';
+        var ops = JSON.parse(JSON.stringify(defaultOps));
+        ops.dirs.repoRoot = __dirname;
+        var build = new Builder(ops);
+        build._getTarStream();
+        sinon.assert.calledOnce(tar.pack);
+        sinon.assert.calledWithExactly(tar.pack, ops.dirs.repoRoot + '/src');
+        done();
+      });
     });
   });
 
