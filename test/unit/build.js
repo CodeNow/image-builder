@@ -19,6 +19,7 @@ var tar = require('tar-fs');
 
 var Builder = require('../../lib/steps/build.js');
 var utils = require('../../lib/utils');
+const vault = require('../../lib/external/vault')
 
 var defaultOps = {
   dirs: {
@@ -71,7 +72,7 @@ describe('build.js unit test', function () {
   });
 
   describe('new test', function () {
-    it('should load without envs', function(done) {
+    it('should load without envs', (done) => {
       delete process.env.RUNNABLE_DOCKER;
       new Builder(defaultOps);
       done();
@@ -79,16 +80,59 @@ describe('build.js unit test', function () {
   });
 
   describe('runDockerBuild', function () {
-    before(function(done) {
+    before((done) => {
       process.env.RUNNABLE_DOCKERTAG = 'some-tag';
       done();
     });
 
-    after(function(done) {
+    after((done) => {
       delete process.env.RUNNABLE_DOCKERTAG;
       delete process.env.RUNNABLE_BUILD_DOCKER_CONTEXT;
       done();
     });
+    describe('with registry', () => {
+      before((done) => {
+        sinon.stub(vault, 'readRegistryPassword').returns('password')
+        process.env.RUNNABLE_DOCKER_REGISTRY_URL = 'dockerhub.com'
+        process.env.RUNNABLE_DOCKER_REGISTRY_USERNAME = 'runnabot'
+        process.env.RUNNABLE_VAULT_TOKEN_FILE_PATH = 'vault-pass'
+        done()
+      })
+
+      after((done) => {
+        vault.readRegistryPassword.restore()
+        delete process.env.RUNNABLE_DOCKER_REGISTRY_URL
+        delete process.env.RUNNABLE_DOCKER_REGISTRY_USERNAME
+        delete process.env.RUNNABLE_VAULT_TOKEN_FILE_PATH
+        done()
+      })
+      it('should set proper options if registry info provided', (done) => {
+
+
+        var build = new Builder(defaultOps);
+        var testRes = 'some string';
+        sinon.stub(build, '_getTarStream')
+          .returns(defaultOps.dirs.dockerContext);
+        sinon.stub(build.docker, 'buildImage').yields(null, testRes);
+        sinon.stub(build, '_handleBuild').yields();
+        build.runDockerBuild((err) => {
+          if (err) { return done(err); }
+          expect(build._getTarStream.calledOnce).to.be.true();
+          sinon.assert.calledWithExactly(build.docker.buildImage,
+            defaultOps.dirs.dockerContext,
+            { t: process.env.RUNNABLE_DOCKERTAG,
+              registryconfig: { password: "password", url: "dockerhub.com", username: "runnabot" },
+              dockerfile: undefined}, sinon.match.func);
+          expect(build._handleBuild
+            .calledWith(testRes)).to.be.true();
+
+          build._getTarStream.restore();
+          build.docker.buildImage.restore();
+          build._handleBuild.restore();
+          done();
+        })
+      })
+    })
     describe('with context', function () {
       it('should set options correctly', function (done) {
         process.env.RUNNABLE_BUILD_DOCKER_CONTEXT = '/src/';
