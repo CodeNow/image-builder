@@ -58,5 +58,7 @@
   "eqnull": true,
 
   // Suppress warnings about (hoisted) functions not being defined
-  "latedef": "nofunc"
+  "latedef": "nofunc",
+  // no warnings about semicolons
+  "asi": true
 }
