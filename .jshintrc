@@ -12,6 +12,7 @@
 
   // Define globals exposed by Node.js.
   "node": true,
+  "esversion": 6,
 
   /*
    * ENFORCING OPTIONS
