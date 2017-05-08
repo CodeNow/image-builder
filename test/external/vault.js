@@ -12,31 +12,26 @@ lab.experiment('vault.js unit test', () => {
     lab.beforeEach((done) => {
       sinon.stub(fs, 'readFileSync').returns('vault-token\n ')
       process.env.RUNNABLE_VAULT_TOKEN_FILE_PATH = '/some-path'
+      process.env.RUNNABLE_VAULT_ENDPOINT = 'endpoint-for-vault'
       done()
     })
     lab.afterEach((done) => {
       fs.readFileSync.restore()
       delete process.env.RUNNABLE_VAULT_TOKEN_FILE_PATH
+      delete process.env.RUNNABLE_VAULT_ENDPOINT
       done()
     })
-    lab.it('should setup unix socket', (done) => {
-      const vault = new vault_VaultManager()
-      expect(vault._vault).to.exist()
+    lab.it('should be initialized', (done) => {
+      const vaultInstance = new vault._VaultManager()
+      expect(vaultInstance._vault).to.exist()
+      expect(vaultInstance._vaultOpts.apiVersion).to.equal('v1')
+      expect(vaultInstance._vaultOpts.endpoint).to.equal('endpoint-for-vault')
+      expect(vaultInstance._vaultOpts.token).to.equal('vault-token')
       sinon.assert.calledOnce(fs.readFileSync)
       sinon.assert.calledWithExactly(fs.readFileSync,
         process.env.RUNNABLE_VAULT_TOKEN_FILE_PATH, 'utf8')
       done()
     })
-    // lab.it('should setup with remote', function(done) {
-    //   const host = '10.234.129.94'
-    //   const port = '5354'
-    //   const remote = 'tcp://'+host+':'+port
-    //   process.env.RUNNABLE_DOCKER = remote
-    //   const d = docker()
-    //   expect(d.modem.host).to.equal(host)
-    //   expect(d.modem.port).to.equal(port)
-    //   done()
-    // })
   })
   // lab.experiment('invalid', function () {
   //   lab.it('should throw if RUNNABLE_DOCKER not set', function(done) {
