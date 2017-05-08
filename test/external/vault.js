@@ -13,14 +13,14 @@ lab.experiment('vault.js unit test', () => {
       sinon.stub(fs, 'readFileSync').returns('vault-token\n ')
       process.env.RUNNABLE_VAULT_TOKEN_FILE_PATH = '/some-path'
       process.env.RUNNABLE_VAULT_ENDPOINT = 'endpoint-for-vault'
-      process.env.process.env.RUNNABLE_VAULT_TOKEN_FILE_PATH = 111
+      process.env.RUNNABLE_ORG_ID = 111
       done()
     })
     lab.afterEach((done) => {
       fs.readFileSync.restore()
       delete process.env.RUNNABLE_VAULT_TOKEN_FILE_PATH
       delete process.env.RUNNABLE_VAULT_ENDPOINT
-      delete process.env.process.env.RUNNABLE_VAULT_TOKEN_FILE_PATH
+      delete process.env.RUNNABLE_ORG_ID
       done()
     })
     lab.it('should be initialized', (done) => {
@@ -36,12 +36,12 @@ lab.experiment('vault.js unit test', () => {
     })
     lab.it('should return password', (done) => {
       const vaultInstance = new vault._VaultManager()
-      sinon.stub(vaultInstance._vault, 'read').return('password')
+      sinon.stub(vaultInstance._vault, 'read').returns('password')
       const result = vaultInstance.readRegistryPassword()
-      expect(result).to.equal('passwrod')
+      expect(result).to.equal('password')
       sinon.assert.calledOnce(vaultInstance._vault.read)
       const passwordPath = 'secret/organization/111/registry/password'
-      sinon.assert.calledWithExactly(vaultInstance._vault.read, passwordPath, 'utf8')
+      sinon.assert.calledWithExactly(vaultInstance._vault.read, passwordPath)
       done()
     })
   })
