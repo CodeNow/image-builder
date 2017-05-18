@@ -123,7 +123,9 @@ describe('build.js unit test', function () {
           sinon.assert.calledWithExactly(build.docker.buildImage,
             defaultOps.dirs.dockerContext,
             { t: process.env.RUNNABLE_DOCKERTAG,
-              registryconfig: { password: 'password', url: 'dockerhub.com', username: 'runnabot' },
+              registryconfig: {
+                'dockerhub.com': { password: 'password', username: 'runnabot' }
+              },
               dockerfile: undefined}, sinon.match.func);
           expect(build._handleBuild
             .calledWith(testRes)).to.be.true();
