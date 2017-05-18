@@ -11,7 +11,9 @@ var beforeEach = lab.beforeEach;
 var Code = require('code');
 var expect = Code.expect;
 
-var sinon = require('sinon');
+var Promise = require('bluebird')
+var sinon = require('sinon')
+require('sinon-as-promised')(Promise)
 var createCount = require('callback-count');
 var stream = require('stream');
 var fs = require('fs');
@@ -92,7 +94,7 @@ describe('build.js unit test', function () {
     });
     describe('with registry', () => {
       before((done) => {
-        sinon.stub(vault, 'readRegistryPassword').returns('password')
+        sinon.stub(vault, 'readRegistryPassword').resolves({ 'data': { 'value': 'password'}})
         process.env.RUNNABLE_DOCKER_REGISTRY_URL = 'dockerhub.com'
         process.env.RUNNABLE_DOCKER_REGISTRY_USERNAME = 'runnabot'
         process.env.RUNNABLE_VAULT_TOKEN_FILE_PATH = 'vault-pass'
