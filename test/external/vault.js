@@ -4,7 +4,9 @@ const fs = require('fs')
 const Lab = require('lab')
 const lab = exports.lab = Lab.script()
 const expect = require('code').expect
+const Promise = require('bluebird')
 const sinon = require('sinon')
+require('sinon-as-promised')(Promise)
 const vault = require('../../lib/external/vault')
 
 lab.experiment('vault.js unit test', () => {
@@ -36,13 +38,16 @@ lab.experiment('vault.js unit test', () => {
     })
     lab.it('should return password', (done) => {
       const vaultInstance = new vault._VaultManager()
-      sinon.stub(vaultInstance._vault, 'read').returns('password')
-      const result = vaultInstance.readRegistryPassword()
-      expect(result).to.equal('password')
-      sinon.assert.calledOnce(vaultInstance._vault.read)
-      const passwordPath = 'secret/organization/111/registry/password'
-      sinon.assert.calledWithExactly(vaultInstance._vault.read, passwordPath)
-      done()
+      sinon.stub(vaultInstance._vault, 'read').resolves({'data': {'value': 'password'}})
+      vaultInstance.readRegistryPassword()
+        .tap(function (result) {
+          expect(result).to.deep.equal({'data': {'value': 'password'}})
+          sinon.assert.calledOnce(vaultInstance._vault.read)
+          const passwordPath = 'secret/organization/111/registry/password'
+          sinon.assert.calledWithExactly(vaultInstance._vault.read, passwordPath)
+        })
+        .asCallback(done)
+
     })
   })
   lab.experiment('invalid', function () {
@@ -56,8 +61,11 @@ lab.experiment('vault.js unit test', () => {
     lab.it('should throw an error when trying to read password from unset vault', (done) => {
       delete process.env.RUNNABLE_VAULT_TOKEN_FILE_PATH
       const vaultInstance = new vault._VaultManager()
-      expect(vaultInstance.readRegistryPassword).to.throw(Error, /Vault was not configured/)
-      done()
+      vaultInstance.readRegistryPassword()
+      .asCallback(function (err) {
+        expect(err.message).to.equal(/Vault was not configured/)
+        done()
+      })
     })
   })
 })
