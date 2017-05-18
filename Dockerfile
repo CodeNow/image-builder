@@ -5,6 +5,7 @@ RUN ssh-keyscan -H -p 22 github.com >> $HOME/.ssh/known_hosts
 
 RUN npm install -g n
 RUN n 4.2.2
+RUN npm install
 VOLUME /cache
 ADD . /source
 
