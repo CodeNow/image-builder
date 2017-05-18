@@ -4,9 +4,9 @@ const fs = require('fs')
 const Lab = require('lab')
 const lab = exports.lab = Lab.script()
 const expect = require('code').expect
-const Promise = require('bluebird')
+const Bluebird = require('bluebird')
 const sinon = require('sinon')
-require('sinon-as-promised')(Promise)
+require('sinon-as-promised')(Bluebird)
 const vault = require('../../lib/external/vault')
 
 lab.experiment('vault.js unit test', () => {
