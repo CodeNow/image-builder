@@ -47,7 +47,6 @@ lab.experiment('vault.js unit test', () => {
           sinon.assert.calledWithExactly(vaultInstance._vault.read, passwordPath)
         })
         .asCallback(done)
-
     })
   })
   lab.experiment('invalid', function () {
@@ -63,6 +62,7 @@ lab.experiment('vault.js unit test', () => {
       const vaultInstance = new vault._VaultManager()
       vaultInstance.readRegistryPassword()
       .asCallback(function (err) {
+        console.log('xxx', err)
         expect(err.message).to.equal(/Vault was not configured/)
         done()
       })
