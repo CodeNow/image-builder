@@ -62,7 +62,7 @@ lab.experiment('vault.js unit test', () => {
       const vaultInstance = new vault._VaultManager()
       vaultInstance.readRegistryPassword()
       .asCallback(function (err) {
-        expect(err.message).to.equal('Vault was not configured')
+        expect(err.message).to.equal('Error reading registry password - Vault was not configured')
         done()
       })
     })
