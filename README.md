@@ -4,7 +4,7 @@
 
 A Docker image that is used to build other Docker images using other resources.
 
-## Building the Docker Image
+## Building the Docker Image 
 
 To build the image, from the repository root:
 
