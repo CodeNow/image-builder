@@ -140,6 +140,7 @@ describe('build.js unit test', function () {
     describe('adding ssh keys', () => {
       before((done) => {
         process.env.SSH_KEY_IDS = '13'
+        process.env.RUNNABLE_BUILD_DOCKERFILE = true
         sinon.stub(sshKeyReader, 'createSSHKeys').resolves({
           SSH_KEY_13: '-----BEGIN RSA PRIVATE KEY-----'
         })
@@ -149,6 +150,7 @@ describe('build.js unit test', function () {
       after((done) => {
         sshKeyReader.createSSHKeys.restore()
         delete process.env.SSH_KEY_IDS
+        delete process.env.RUNNABLE_BUILD_DOCKERFILE
         done()
       })
       it('should set ssh-key build args', (done) => {

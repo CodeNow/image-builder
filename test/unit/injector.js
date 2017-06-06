@@ -231,6 +231,7 @@ lab.experiment('injector.js', function () {
   lab.experiment('ssh keys', function () {
     beforeEach((done) => {
       process.env.SSH_KEY_IDS = '13';
+      process.env.RUNNABLE_BUILD_DOCKERFILE = true
       sinon.spy(sshKeyReader, 'addToKeyring')
       done()
     })
