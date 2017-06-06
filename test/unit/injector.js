@@ -230,18 +230,18 @@ lab.experiment('injector.js', function () {
   });
   lab.experiment('ssh keys', function () {
     beforeEach((done) => {
-      process.env.SSH_KEY_IDS = '13';
+      process.env.RUNNABLE_SSH_KEY_IDS = '13';
       process.env.RUNNABLE_BUILD_DOCKERFILE = true
       sinon.spy(sshKeyReader, 'addToKeyring')
       done()
     })
     afterEach((done) => {
-      delete process.env.SSH_KEY_IDS
+      delete process.env.RUNNABLE_SSH_KEY_IDS
       sshKeyReader.addToKeyring.restore()
       done()
     })
       it('should not call sshKeys addToKeyring when there are no keys', function(done) {
-        delete process.env.SSH_KEY_IDS
+        delete process.env.RUNNABLE_SSH_KEY_IDS
         var item = 'FROM ubuntu\nRUN some\nENV T 1\nRUN maur stuff\nENV start';
         parser(item);
         sinon.assert.notCalled(sshKeyReader.addToKeyring)

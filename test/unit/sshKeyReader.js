@@ -29,12 +29,12 @@ lab.experiment('sshKeyReader.js', () => {
       done()
     })
     afterEach((done) => {
-      delete process.env.SSH_KEY_IDS
+      delete process.env.RUNNABLE_SSH_KEY_IDS
       vault.readUserSSHKey.restore()
       done()
     })
       it('should produce an id and key object', (done) => {
-        process.env.SSH_KEY_IDS = '13';
+        process.env.RUNNABLE_SSH_KEY_IDS = '13';
         sshKeyReader.createSSHKeys()
           .then((keys) => {
             expect(keys.SSH_KEY_13).to.equal(rsaKey)
@@ -44,7 +44,7 @@ lab.experiment('sshKeyReader.js', () => {
           })
       });
       it('should produce multiple keys and ids', (done) => {
-        process.env.SSH_KEY_IDS = '13,31';
+        process.env.RUNNABLE_SSH_KEY_IDS = '13,31';
         sshKeyReader.createSSHKeys()
           .then((keys) => {
             expect(keys.SSH_KEY_13).to.equal(rsaKey)
@@ -54,7 +54,7 @@ lab.experiment('sshKeyReader.js', () => {
           })
       });
       it('should produce an empty object if no keys', (done) => {
-        process.env.SSH_KEY_IDS = '';
+        process.env.RUNNABLE_SSH_KEY_IDS = '';
         vault.readUserSSHKey.restore()
         sinon.stub(vault, 'readUserSSHKey').resolves({
           data: {
@@ -71,11 +71,11 @@ lab.experiment('sshKeyReader.js', () => {
     });
   lab.experiment('addToKeyring', () => {
     beforeEach((done) => {
-      process.env.SSH_KEY_IDS = '13';
+      process.env.RUNNABLE_SSH_KEY_IDS = '13';
       done()
     })
     afterEach((done) => {
-      delete process.env.SSH_KEY_IDS
+      delete process.env.RUNNABLE_SSH_KEY_IDS
       done()
     })
       it('should add github.com to the known hosts file', (done) => {
