@@ -240,11 +240,12 @@ lab.experiment('injector.js', function () {
       sshKeyReader.addToKeyring.restore()
       done()
     })
-      it('should not call sshKeys addToKeyring when there are no keys', function(done) {
+      it('should return unmodified dockerfile  when there are no keys', function(done) {
         delete process.env.RUNNABLE_SSH_KEY_IDS
         var item = 'FROM ubuntu\nRUN some\nENV T 1\nRUN maur stuff\nENV start';
-        parser(item);
-        sinon.assert.notCalled(sshKeyReader.addToKeyring)
+        let dockerfile = parser(item);
+        sinon.assert.calledOnce(sshKeyReader.addToKeyring)
+        expect(dockerfile).to.equal(item)
         done();
       });
       it('should call sshKeys addToKeyring', function(done) {

@@ -63,8 +63,8 @@ lab.experiment('sshKeyReader.js', () => {
         })
         sshKeyReader.createSSHKeys()
           .then((keys) => {
-            expect(keys.SSH_KEY_13).to.equal(undefined)
-            sinon.assert.calledOnce(vault.readUserSSHKey)
+            expect(keys).to.equal(null)
+            sinon.assert.notCalled(vault.readUserSSHKey)
             done();
           })
       });
