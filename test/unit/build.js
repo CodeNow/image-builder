@@ -82,19 +82,34 @@ describe('build.js unit test', function () {
   });
 
   describe('runDockerBuild', function () {
-    before((done) => {
+    var build;
+    var testRes = 'some string';
+    beforeEach((done) => {
+      process.env.RUNNABLE_DOCKER = 'unix:///var/run/docker.sock'
       process.env.RUNNABLE_DOCKERTAG = 'some-tag';
+      build = new Builder(defaultOps);
+      sinon.stub(build, 'getRegistryConfig').resolves(null)
+      sinon.stub(build, 'getLocalRegistryConfig').resolves(null)
+      sinon.stub(vault, 'readRegistryPassword').resolves({ 'data': { 'value': 'password'}})
+      sinon.stub(build, '_getTarStream').returns(defaultOps.dirs.dockerContext);
+      sinon.stub(build.docker, 'buildImage').yields(null, testRes);
+      sinon.stub(build, '_handleBuild').yields(null, null);
       done();
     });
 
-    after((done) => {
+    afterEach((done) => {
       delete process.env.RUNNABLE_DOCKERTAG;
       delete process.env.RUNNABLE_BUILD_DOCKER_CONTEXT;
+      build.getRegistryConfig.restore();
+      build.getLocalRegistryConfig.restore();
+      build._getTarStream.restore();
+      build.docker.buildImage.restore();
+      build._handleBuild.restore();
+      vault.readRegistryPassword.restore();
       done();
     });
     describe('with registry', () => {
       before((done) => {
-        sinon.stub(vault, 'readRegistryPassword').resolves({ 'data': { 'value': 'password'}})
         process.env.RUNNABLE_DOCKER_REGISTRY_URL = 'dockerhub.com'
         process.env.RUNNABLE_DOCKER_REGISTRY_USERNAME = 'runnabot'
         process.env.RUNNABLE_VAULT_TOKEN_FILE_PATH = 'vault-pass'
@@ -102,37 +117,31 @@ describe('build.js unit test', function () {
       })
 
       after((done) => {
-        vault.readRegistryPassword.restore()
         delete process.env.RUNNABLE_DOCKER_REGISTRY_URL
         delete process.env.RUNNABLE_DOCKER_REGISTRY_USERNAME
         delete process.env.RUNNABLE_VAULT_TOKEN_FILE_PATH
         done()
       })
+
       it('should set proper options if registry info provided', (done) => {
-
-
-        var build = new Builder(defaultOps);
-        var testRes = 'some string';
-        sinon.stub(build, '_getTarStream')
-          .returns(defaultOps.dirs.dockerContext);
-        sinon.stub(build.docker, 'buildImage').yields(null, testRes);
-        sinon.stub(build, '_handleBuild').yields();
+        const url = 'quay.io'
+        const username = 'hiphipjorge'
+        const password = 'trust-the-process'
+        build.getRegistryConfig.resolves({ url, username, password })
         build.runDockerBuild((err) => {
           if (err) { return done(err); }
-          expect(build._getTarStream.calledOnce).to.be.true();
+          sinon.assert.calledOnce(build._getTarStream);
           sinon.assert.calledWithExactly(build.docker.buildImage,
             defaultOps.dirs.dockerContext,
             { t: process.env.RUNNABLE_DOCKERTAG,
               registryconfig: {
-                'dockerhub.com': { password: 'password', username: 'runnabot' }
+                'quay.io': { password, username }
               },
-              dockerfile: undefined}, sinon.match.func);
-          expect(build._handleBuild
-            .calledWith(testRes)).to.be.true();
-
-          build._getTarStream.restore();
-          build.docker.buildImage.restore();
-          build._handleBuild.restore();
+              dockerfile: undefined
+            },
+            sinon.match.func
+          );
+          sinon.assert.calledWithExactly(build._handleBuild, testRes, sinon.match.func);
           done();
         })
       })
@@ -140,75 +149,50 @@ describe('build.js unit test', function () {
     describe('with context', function () {
       it('should set options correctly', function (done) {
         process.env.RUNNABLE_BUILD_DOCKER_CONTEXT = '/src/';
-        var build = new Builder(defaultOps);
-        var testRes = 'some string';
-        sinon.stub(build, '_getTarStream')
-          .returns(defaultOps.dirs.dockerContext);
-        sinon.stub(build.docker, 'buildImage').yields(null, testRes);
-        sinon.stub(build, '_handleBuild').yields();
-
         build.runDockerBuild(function(err) {
           if (err) { return done(err); }
-          expect(build._getTarStream.calledOnce).to.be.true();
+          sinon.assert.calledOnce(build._getTarStream);
           sinon.assert.calledWith(build.docker.buildImage,
             defaultOps.dirs.dockerContext,
-            { t: process.env.RUNNABLE_DOCKERTAG,
-            dockerfile: 'Dockerfile'});
-          expect(build._handleBuild
-            .calledWith(testRes)).to.be.true();
-
-          build._getTarStream.restore();
-          build.docker.buildImage.restore();
-          build._handleBuild.restore();
+            {
+              t: process.env.RUNNABLE_DOCKERTAG,
+              dockerfile: 'Dockerfile'
+            }
+          );
+          sinon.assert.calledWithExactly(build._handleBuild, testRes, sinon.match.func);
           done();
         });
       });
       it('should set opts and do not change dockerfile path', function (done) {
         process.env.RUNNABLE_BUILD_DOCKER_CONTEXT = './';
-        var build = new Builder(defaultOps);
-        var testRes = 'some string';
-        sinon.stub(build, '_getTarStream')
-          .returns(defaultOps.dirs.dockerContext);
-        sinon.stub(build.docker, 'buildImage').yields(null, testRes);
-        sinon.stub(build, '_handleBuild').yields();
-
         build.runDockerBuild(function(err) {
           if (err) { return done(err); }
-          expect(build._getTarStream.calledOnce).to.be.true();
-          sinon.assert.calledWith(build.docker.buildImage,
+          sinon.assert.calledOnce(build._getTarStream);
+          sinon.assert.calledWith(
+            build.docker.buildImage,
             defaultOps.dirs.dockerContext,
-            { t: process.env.RUNNABLE_DOCKERTAG,
-            dockerfile: 'src/Dockerfile'});
-          expect(build._handleBuild
-            .calledWith(testRes)).to.be.true();
-
-          build._getTarStream.restore();
-          build.docker.buildImage.restore();
-          build._handleBuild.restore();
+            {
+              t: process.env.RUNNABLE_DOCKERTAG,
+              dockerfile: 'src/Dockerfile'
+            }
+          );
+          sinon.assert.calledWithExactly(build._handleBuild, testRes, sinon.match.func);
           done();
         });
       });
     });
     it('should call buildImage with correct tag', function (done) {
-      var build = new Builder(defaultOps);
-      var testRes = 'some string';
-      sinon.stub(build, '_getTarStream').returns(defaultOps.dirs.dockerContext);
-      sinon.stub(build.docker, 'buildImage').yields(null, testRes);
-      sinon.stub(build, '_handleBuild').yields();
-
       build.runDockerBuild(function(err) {
         if (err) { return done(err); }
-        expect(build._getTarStream.calledOnce).to.be.true();
+        sinon.assert.calledOnce(build._getTarStream);
         sinon.assert.calledWith(build.docker.buildImage,
           defaultOps.dirs.dockerContext,
-          { t: process.env.RUNNABLE_DOCKERTAG,
-          dockerfile: undefined });
-        expect(build._handleBuild
-          .calledWith(testRes)).to.be.true();
-
-        build._getTarStream.restore();
-        build.docker.buildImage.restore();
-        build._handleBuild.restore();
+          {
+            t: process.env.RUNNABLE_DOCKERTAG,
+            dockerfile: undefined
+          }
+        );
+        sinon.assert.calledWithExactly(build._handleBuild, testRes, sinon.match.func);
         done();
       });
     });
@@ -218,49 +202,37 @@ describe('build.js unit test', function () {
         testFlag: 'dockerTestArgs',
         cpus: 100,
       });
-      var build = new Builder(defaultOps);
-      var testRes = 'some string';
-
-      sinon.stub(build, '_getTarStream').returns(defaultOps.dirs.dockerContext);
-      sinon.stub(build.docker, 'buildImage').yields(null, testRes);
-      sinon.stub(build, '_handleBuild').yields();
-
+      sinon.assert.notCalled(build._getTarStream);
       build.runDockerBuild(function(err) {
         if (err) { return done(err); }
-        expect(build._getTarStream.calledOnce).to.be.true();
-        expect(build.docker.buildImage
-          .calledWith(defaultOps.dirs.dockerContext, {
+        sinon.assert.calledOnce(build._getTarStream);
+        sinon.assert.calledWith(
+          build.docker.buildImage,
+          defaultOps.dirs.dockerContext,
+          {
             dockerfile: undefined,
             t: process.env.RUNNABLE_DOCKERTAG,
             cpus: 100,
             testFlag: 'dockerTestArgs'
-          })).to.be.true();
-        expect(build._handleBuild
-          .calledWith(testRes)).to.be.true();
-
-        build._getTarStream.restore();
-        build.docker.buildImage.restore();
-        build._handleBuild.restore();
+          }
+        );
+        sinon.assert.calledWithExactly(build._handleBuild, testRes, sinon.match.func);
         delete process.env.RUNNABLE_BUILD_FLAGS;
         done();
       });
     });
 
     it('should callback error is buildImage errored', function (done) {
-      var build = new Builder(defaultOps);
-      var someErr = 'test err';
-      sinon.stub(build, '_getTarStream').returns(defaultOps.dirs.dockerContext);
-      sinon.stub(build.docker, 'buildImage').yields(someErr);
+      const err = new Error('Expected error');
+      build.docker.buildImage.yields(err);
 
       build.runDockerBuild(function(err) {
-        expect(build._getTarStream.calledOnce).to.be.true();
+        sinon.assert.calledOnce(build._getTarStream);
         expect(build.docker.buildImage
           .calledWith(defaultOps.dirs.dockerContext,
             { dockerfile: undefined,
               t: process.env.RUNNABLE_DOCKERTAG })).to.be.true();
 
-        build._getTarStream.restore();
-        build.docker.buildImage.restore();
         if (err) {
           return done();
         }
