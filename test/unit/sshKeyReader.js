@@ -56,11 +56,7 @@ lab.experiment('sshKeyReader.js', () => {
       it('should produce an empty object if no keys', (done) => {
         process.env.RUNNABLE_SSH_KEY_IDS = '';
         vault.readUserSSHKey.restore()
-        sinon.stub(vault, 'readUserSSHKey').resolves({
-          data: {
-            value: rsaKey
-          }
-        })
+        sinon.stub(vault, 'readUserSSHKey').resolves({ data: {value: rsaKey} })
         sshKeyReader.createSSHKeys()
           .then((keys) => {
             expect(keys).to.equal(null)
