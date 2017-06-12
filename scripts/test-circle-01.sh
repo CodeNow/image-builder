@@ -21,7 +21,7 @@ docker run \
   -e RUNNABLE_DOCKERTAG='test-built-image' \
   -e RUNNABLE_DOCKER_BUILDOPTIONS='' \
   -e RUNNABLE_BUILD_DOCKERFILE='/Dockerfile' \
-  -v `pwd`/scripts/runnable-image-builder-tester-auth.json:/root/docker/config.json:ro
+  -v `pwd`/scripts/runnable-image-builder-tester-auth.json:/root/docker/config.json:ro \
   test-image-builder | tee $build_log
 
 # should exit successfully
