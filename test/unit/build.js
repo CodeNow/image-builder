@@ -22,6 +22,7 @@ var tar = require('tar-fs');
 var Builder = require('../../lib/steps/build.js');
 var utils = require('../../lib/utils');
 const vault = require('../../lib/external/vault')
+const sshKeyReader = require('../../lib/steps/sshKeyReader')
 
 var defaultOps = {
   dirs: {
@@ -110,7 +111,6 @@ describe('build.js unit test', function () {
       })
       it('should set proper options if registry info provided', (done) => {
 
-
         var build = new Builder(defaultOps);
         var testRes = 'some string';
         sinon.stub(build, '_getTarStream')
@@ -125,6 +125,49 @@ describe('build.js unit test', function () {
             { t: process.env.RUNNABLE_DOCKERTAG,
               registryconfig: {
                 'dockerhub.com': { password: 'password', username: 'runnabot' }
+              },
+              dockerfile: undefined}, sinon.match.func);
+          expect(build._handleBuild
+            .calledWith(testRes)).to.be.true();
+
+          build._getTarStream.restore();
+          build.docker.buildImage.restore();
+          build._handleBuild.restore();
+          done();
+        })
+      })
+    })
+    describe('adding ssh keys', () => {
+      before((done) => {
+        process.env.RUNNABLE_SSH_KEY_IDS = '13'
+        process.env.RUNNABLE_BUILD_DOCKERFILE = true
+        sinon.stub(sshKeyReader, 'createSSHKeys').resolves({
+          SSH_KEY_13: '-----BEGIN RSA PRIVATE KEY-----'
+        })
+        done()
+      })
+
+      after((done) => {
+        sshKeyReader.createSSHKeys.restore()
+        delete process.env.RUNNABLE_SSH_KEY_IDS
+        delete process.env.RUNNABLE_BUILD_DOCKERFILE
+        done()
+      })
+      it('should set ssh-key build args', (done) => {
+        var build = new Builder(defaultOps);
+        var testRes = 'some string';
+        sinon.stub(build, '_getTarStream')
+          .returns(defaultOps.dirs.dockerContext);
+        sinon.stub(build.docker, 'buildImage').yields(null, testRes);
+        sinon.stub(build, '_handleBuild').yields();
+        build.runDockerBuild((err) => {
+          if (err) { return done(err); }
+          expect(build._getTarStream.calledOnce).to.be.true();
+          sinon.assert.calledWithExactly(build.docker.buildImage,
+            defaultOps.dirs.dockerContext,
+            { t: process.env.RUNNABLE_DOCKERTAG,
+              buildargs: {
+                'SSH_KEY_13': '-----BEGIN RSA PRIVATE KEY-----'
               },
               dockerfile: undefined}, sinon.match.func);
           expect(build._handleBuild

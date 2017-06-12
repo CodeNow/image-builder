@@ -1,13 +1,16 @@
 'use strict';
 
-var Lab = require('lab');
-var lab = exports.lab = Lab.script();
-var expect = require('code').expect;
-var it = lab.test;
-var beforeEach = lab.beforeEach;
+const Lab = require('lab');
+const lab = exports.lab = Lab.script();
+const expect = require('code').expect;
+const it = lab.test;
+const beforeEach = lab.beforeEach;
+const afterEach = lab.afterEach
+const sshKeyReader = require('../../lib/steps/sshKeyReader')
+const sinon = require('sinon');
 
-var parser = require('../../lib/steps/injector.js');
-var WAIT_FOR_CHARON = ' sleep 10; ';
+const parser = require('../../lib/steps/injector.js');
+const WAIT_FOR_CHARON = ' sleep 10; ';
 
 lab.experiment('injector.js', function () {
   lab.experiment('without weave', function () {
@@ -225,4 +228,31 @@ lab.experiment('injector.js', function () {
       });
     });
   });
+  lab.experiment('ssh keys', function () {
+    beforeEach((done) => {
+      process.env.RUNNABLE_SSH_KEY_IDS = '13';
+      process.env.RUNNABLE_BUILD_DOCKERFILE = true
+      sinon.spy(sshKeyReader, 'addToKeyring')
+      done()
+    })
+    afterEach((done) => {
+      delete process.env.RUNNABLE_SSH_KEY_IDS
+      sshKeyReader.addToKeyring.restore()
+      done()
+    })
+      it('should return unmodified dockerfile  when there are no keys', function(done) {
+        delete process.env.RUNNABLE_SSH_KEY_IDS
+        var item = 'FROM ubuntu\nRUN some\nENV T 1\nRUN maur stuff\nENV start';
+        let dockerfile = parser(item);
+        sinon.assert.calledOnce(sshKeyReader.addToKeyring)
+        expect(dockerfile).to.equal(item)
+        done();
+      });
+      it('should call sshKeys addToKeyring', function(done) {
+        var item = 'FROM ubuntu\nRUN some\nENV T 1\nRUN maur stuff\nENV start';
+        parser(item);
+        sinon.assert.calledOnce(sshKeyReader.addToKeyring)
+        done();
+      });
+    });
 });
