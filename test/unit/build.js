@@ -128,7 +128,7 @@ describe('build.js unit test', function () {
         const url = 'quay.io'
         const username = 'hiphipjorge'
         const password = 'trust-the-process'
-        build.getRegistryConfig.resolves({ registryConf: { url, username, password }})
+        build.getRegistryConfig.resolves({ registryConfig: { url, username, password }})
         build.runDockerBuild((err) => {
           if (err) { return done(err); }
           sinon.assert.calledOnce(build._getTarStream);
