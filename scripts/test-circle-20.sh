@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Test whether loading a config.json as volume successfully logs in to docker
 # Depends on this branch of image-builder-test: https://github.com/Runnable/image-builder-test/tree/test-private-registries
-# Depends on `runnable+image_builder_tester` robot account in quay
+# Depends on `runnable+image_builder_tester` robot account in quay.
+# This quay account has read-only access to 1 private repository (image-builder-test). No other permissions should be given.
 # Depends on `image-builder-test:test-private-registry` image in quay: runnable+image_builder_tester
 set -e
 
