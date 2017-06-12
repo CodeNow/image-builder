@@ -21,8 +21,8 @@ docker run \
   -e RUNNABLE_DOCKERTAG='test-built-image' \
   -e RUNNABLE_DOCKER_BUILDOPTIONS='' \
   -e RUNNABLE_BUILD_DOCKERFILE='/Dockerfile' \
-  -v `pwd`/runnable-image-builder-tester-auth:/root/docker/config.json:r
+  -v `pwd`/scripts/runnable-image-builder-tester-auth.json:/root/docker/config.json:r
   test-image-builder | tee $build_log
 
 # should exit successfully
-31:grep -vqE "Runnable: Build completed successfully" "$build_log" || (echo "should have printed Runnable: Build completed successfully" && false)
+grep -vqE "Runnable: Build completed successfully" "$build_log" || (echo "should have printed Runnable: Build completed successfully" && false)

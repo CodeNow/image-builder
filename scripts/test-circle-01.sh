@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# a simple test. should successfully build
+# Test whether loading a config.json as volume successfully logs in to docker
+# Depends on this branch of image-builder-test: https://github.com/Runnable/image-builder-test/tree/test-private-registries
+# Depends on `runnable+image_builder_tester` robot account in quay
+# Depends on `image-builder-test:test-private-registry` image in quay: runnable+image_builder_tester
 set -e
 
-test_num="01"
-full_repo="bkendall/flaming-octo-nemesis"
-
-mkdir -p ./test-"$test_num"/"$full_repo"
+build_log=$(mktemp /tmp/log.XXXX)
 
 docker run \
   -e RUNNABLE_AWS_ACCESS_KEY="$AWS_ACCESS_KEY" \
@@ -14,18 +14,15 @@ docker run \
   -e RUNNABLE_PREFIX='' \
   -e RUNNABLE_FILES='{ "Dockerfile": "FtqXp6T2nGUU2tlqizN1NgzBRHJ2YFyd" }' \
   -e RUNNABLE_KEYS_BUCKET='runnable.image-builder' \
-  -e RUNNABLE_DEPLOYKEY='flaming-octo-nemesis.key' \
-  -e RUNNABLE_REPO='git@github.com:bkendall/flaming-octo-nemesis' \
-  -e RUNNABLE_COMMITISH='master' \
+  -e RUNNABLE_DEPLOYKEY='image-builder.key' \
+  -e RUNNABLE_REPO='git@github.com:Runnable/image-builder-test' \
+  -e RUNNABLE_COMMITISH='44ac246c984ae2b168437a765175b12018329745' \
   -e RUNNABLE_DOCKER="tcp://$(cat DOCKER_IP):5354" \
   -e RUNNABLE_DOCKERTAG='test-built-image' \
   -e RUNNABLE_DOCKER_BUILDOPTIONS='' \
-  -v `pwd`/test-"$test_num":/cache:rw  \
-  test-image-builder
+  -e RUNNABLE_BUILD_DOCKERFILE='/Dockerfile' \
+  -v `pwd`/scripts/runnable-image-builder-tester-auth.json:/root/docker/config.json:r
+  test-image-builder | tee $build_log
 
-# it should not be locked
-test ! -d ./test-"$test_num"/"$full_repo".lock || (echo "repo should not be locked" && false)
-# the repo should exist
-test -e ./test-"$test_num"/"$full_repo" || (echo "repo should exist" && false)
-# and the repo should exist
-test -f ./test-"$test_num"/"$full_repo"/README.md || (echo "repo should be populated" && false)
+# should exit successfully
+grep -vqE "Runnable: Build completed successfully" "$build_log" || (echo "should have printed Runnable: Build completed successfully" && false)
