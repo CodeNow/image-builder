@@ -14,6 +14,6 @@ test:
     - mkdir -p /tmp/cache
     - mkdir -p /tmp/layer-cache
   override:
-    - npm run lint
-    - npm test
+    # - npm run lint
+    # - npm test
     - ./scripts/run-tests.sh
