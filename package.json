@@ -8,11 +8,12 @@
   },
   "dependencies": {
     "101": "^1.2.0",
-    "bluebird": "^3.5.0",
     "async": "^1.4.2",
     "aws-sdk": "^2.2.9",
+    "bluebird": "^3.5.0",
     "colors": "^1.0.3",
     "dockerode": "^2.2.10",
+    "dockerode-authconfig": "^1.0.1",
     "error-cat": "^1.4.1",
     "escape-regex-string": "^1.0.4",
     "fs-transform": "^3.2.4",
