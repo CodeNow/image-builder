@@ -76,33 +76,41 @@ lab.experiment('sshKeyReader.js', () => {
     })
       it('should add github.com to the known hosts file', (done) => {
         let dockerfile = sshKeyReader.addToKeyring(mockDockerfile)
-        expect(dockerfile[2]).to.equal('RUN ssh-keyscan -H github.com > /etc/ssh/ssh_known_hosts')
+        expect(dockerfile[1]).to.equal('RUN ssh-keyscan -H github.com > /etc/ssh/ssh_known_hosts')
         done()
       })
       it('should create a directory for ssh keys', (done) => {
         let dockerfile = sshKeyReader.addToKeyring(mockDockerfile)
-        expect(dockerfile[3]).to.equal('RUN mkdir /ssh-keys/')
+        expect(dockerfile[2]).to.equal('RUN mkdir /ssh-keys/')
         done()
       })
       it('should accept an ssh key build arg', (done) => {
         let dockerfile = sshKeyReader.addToKeyring(mockDockerfile)
-        expect(dockerfile[4]).to.equal('ARG SSH_KEY_13')
+        expect(dockerfile[3]).to.equal('ARG SSH_KEY_13')
         done()
       })
       it('should echo the key to a file', (done) => {
         let dockerfile = sshKeyReader.addToKeyring(mockDockerfile)
-        expect(dockerfile[5]).to.equal('RUN echo $SSH_KEY_13 >> /ssh-keys/13')
+        expect(dockerfile[4]).to.equal('RUN echo $SSH_KEY_13 >> /ssh-keys/13')
         done()
       })
       it('edit permissions on that file and add it to config', (done) => {
         let dockerfile = sshKeyReader.addToKeyring(mockDockerfile)
-        expect(dockerfile[6]).to.equal('RUN chmod 0600 /ssh-keys/13 && ' +
+        expect(dockerfile[5]).to.equal('RUN chmod 0600 /ssh-keys/13 && ' +
           'echo "IdentityFile /ssh-keys/13" >> /etc/ssh/ssh_config')
         done()
       })
       it('remove that file at the end of the build process', (done) => {
         let dockerfile = sshKeyReader.addToKeyring(mockDockerfile)
         expect(dockerfile[dockerfile.length - 1]).to.equal('RUN rm /ssh-keys/13')
+        done()
+      })
+      it('should add the ssh-key injection after the first FROM', (done) => {
+        let dockerfile = sshKeyReader.addToKeyring(mockDockerfile)
+        dockerfile.unshift('# Hello Cleveland!')
+        dockerfile.unshift('# FROM included in comment')
+        expect(dockerfile[3]).to.equal('RUN ssh-keyscan -H github.com > /etc/ssh/ssh_known_hosts')
+        expect(dockerfile[2]).to.equal('FROM runnable/node-starter')
         done()
       })
     })
